@@ -9,46 +9,52 @@
 <title>유아동반 바다 리조트 가이드</title>
 <style>
   :root {
-    --bg: #f7f5f0;
+    /* Starbucks-inspired palette: warm cream canvas + 4-tier green */
+    --bg: #f2f0eb;
     --surface: #ffffff;
-    --text: #1f2933;
-    --muted: #647184;
-    --accent: #2b8aef;
-    --accent-soft: #e6f0fd;
-    --warn: #d97706;
-    --warn-soft: #fef3c7;
-    --good: #16a34a;
-    --good-soft: #dcfce7;
-    --bad: #dc2626;
+    --text: rgba(0,0,0,0.87);
+    --muted: rgba(0,0,0,0.58);
+    --accent: #00754A;
+    --accent-soft: #d4e9e2;
+    --accent-strong: #006241;
+    --warn: #cba258;
+    --warn-soft: #dfc49d;
+    --good: #00754A;
+    --good-soft: #d4e9e2;
+    --bad: #c82014;
     --bad-soft: #fee2e2;
-    --border: #e5e7eb;
-    --shadow: 0 2px 12px rgba(0,0,0,0.06);
-    --radius: 14px;
+    --border: #e0ddd6;
+    --shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.24);
+    --shadow-hover: 0 2px 4px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.08);
+    --radius: 12px;
   }
   [data-theme="dark"] {
-    --bg: #0f1419;
-    --surface: #1a212b;
-    --text: #e5e9f0;
-    --muted: #94a3b8;
-    --accent: #60a5fa;
-    --accent-soft: #1e3a5f;
-    --warn: #fbbf24;
+    --bg: #1E3932;
+    --surface: #2b5148;
+    --text: rgba(255,255,255,1.0);
+    --muted: rgba(255,255,255,0.70);
+    --accent: #4ade80;
+    --accent-soft: #0f3a1f;
+    --accent-strong: #6ee7b7;
+    --warn: #dfc49d;
     --warn-soft: #3f2e0a;
     --good: #4ade80;
     --good-soft: #0f3a1f;
-    --bad: #f87171;
+    --bad: #fca5a5;
     --bad-soft: #3f1818;
-    --border: #2d3748;
-    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    --border: rgba(255,255,255,0.12);
+    --shadow: 0 0 0.5px rgba(0,0,0,0.4), 0 1px 1px rgba(0,0,0,0.5);
+    --shadow-hover: 0 2px 6px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.35);
   }
 
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    font-family: "SoDoSans", -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Helvetica Neue", sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.55;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -60,7 +66,9 @@
   header h1 {
     margin: 0 0 8px;
     font-size: 28px;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--accent-strong);
   }
   header .lede {
     color: var(--muted);

@@ -11,38 +11,52 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
   :root {
-    --bg: #f4f7f2;
+    /* Starbucks-inspired palette: warm cream canvas + 4-tier green */
+    --bg: #f2f0eb;
     --surface: #ffffff;
-    --text: #1f2933;
-    --muted: #647184;
-    --accent: #16a34a;
-    --accent-soft: #dcfce7;
-    --warn: #d97706;
+    --surface-alt: #edebe9;
+    --text: rgba(0,0,0,0.87);
+    --muted: rgba(0,0,0,0.58);
+    --accent: #00754A;         /* Green Accent — CTAs */
+    --accent-strong: #006241;  /* Starbucks Green — headings */
+    --accent-dark: #1E3932;    /* House Green — bands/footer */
+    --accent-soft: #d4e9e2;
+    --gold: #cba258;
+    --gold-soft: #dfc49d;
+    --warn: #c82014;
     --warn-soft: #fef3c7;
-    --border: #e5e7eb;
-    --shadow: 0 2px 12px rgba(0,0,0,0.06);
-    --radius: 14px;
+    --border: #e0ddd6;
+    --shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.24);
+    --shadow-hover: 0 2px 4px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.08);
+    --radius: 12px;
   }
   [data-theme="dark"] {
-    --bg: #0f1419;
-    --surface: #1a212b;
-    --text: #e5e9f0;
-    --muted: #94a3b8;
+    --bg: #1E3932;             /* House Green */
+    --surface: #2b5148;        /* Green Uplift */
+    --surface-alt: #33433d;
+    --text: rgba(255,255,255,1.0);
+    --muted: rgba(255,255,255,0.70);
     --accent: #4ade80;
+    --accent-strong: #6ee7b7;
+    --accent-dark: #0f3a1f;
     --accent-soft: #0f3a1f;
-    --warn: #fbbf24;
+    --gold: #dfc49d;
+    --gold-soft: #cba258;
+    --warn: #fca5a5;
     --warn-soft: #3f2e0a;
-    --border: #2d3748;
-    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    --border: rgba(255,255,255,0.12);
+    --shadow: 0 0 0.5px rgba(0,0,0,0.4), 0 1px 1px rgba(0,0,0,0.5);
+    --shadow-hover: 0 2px 6px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.35);
   }
 
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    font-family: "SoDoSans", -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Helvetica Neue", sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.55;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -54,7 +68,9 @@
   header h1 {
     margin: 0 0 8px;
     font-size: 28px;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--accent-strong);
   }
   header .lede {
     color: var(--muted);
@@ -68,11 +84,15 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 8px 14px;
+    padding: 7px 16px;
     cursor: pointer;
     font-size: 13px;
     color: var(--text);
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
   }
+  .theme-toggle:active { transform: scale(0.95); }
 
   .intro {
     background: linear-gradient(135deg, var(--accent-soft), transparent);
@@ -141,14 +161,17 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 7px 14px;
+    padding: 7px 16px;
     cursor: pointer;
     font-size: 13px;
-    color: var(--muted);
-    transition: all 0.15s;
+    color: var(--text);
+    transition: all 0.2s ease;
     user-select: none;
+    font-family: inherit;
+    letter-spacing: -0.01em;
   }
-  .chip:hover { border-color: var(--accent); }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip:active { transform: scale(0.95); }
   .chip.active {
     background: var(--accent);
     color: white;
@@ -173,11 +196,11 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    box-shadow: var(--shadow-hover);
   }
 
   .card-head {
@@ -489,20 +512,23 @@
     justify-content: flex-end;
   }
   .modal-footer button {
-    padding: 10px 18px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface);
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--text);
+    background: transparent;
     color: var(--text);
     font-size: 14px;
     cursor: pointer;
     font-family: inherit;
+    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
   }
+  .modal-footer button:active { transform: scale(0.95); }
   .modal-footer button.primary {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
-    font-weight: 700;
+    font-weight: 600;
   }
   .modal-footer button.primary:disabled {
     opacity: 0.4;
@@ -826,8 +852,9 @@
   }
   .recommend-title {
     font-size: 26px;
+    font-weight: 600;
     margin: 0 0 12px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
   .recommend-lede {
     color: var(--muted);
@@ -842,15 +869,18 @@
     border-radius: 999px;
     padding: 14px 36px;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,98,65,0.2), 0 4px 12px rgba(0,98,65,0.18);
+    font-family: inherit;
   }
   .recommend-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+    background: var(--accent-strong);
+    box-shadow: 0 2px 4px rgba(0,98,65,0.25), 0 6px 16px rgba(0,98,65,0.25);
   }
+  .recommend-btn:active { transform: scale(0.95); }
   .recommend-btn:disabled {
     background: var(--muted);
     cursor: not-allowed;

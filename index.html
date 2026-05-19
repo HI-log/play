@@ -9,38 +9,44 @@
 <title>HI-log · 유아 동반 가이드</title>
 <style>
   :root {
-    --bg: #f4f7f2;
+    /* Starbucks-inspired palette: warm cream canvas + 4-tier green */
+    --bg: #f2f0eb;
     --surface: #ffffff;
-    --text: #1f2933;
-    --muted: #647184;
-    --accent-resort: #2b8aef;
-    --accent-resort-soft: #e6f0fd;
-    --accent-exp: #16a34a;
-    --accent-exp-soft: #dcfce7;
-    --border: #e5e7eb;
-    --shadow: 0 2px 12px rgba(0,0,0,0.06);
-    --radius: 16px;
+    --text: rgba(0,0,0,0.87);
+    --muted: rgba(0,0,0,0.58);
+    --accent-resort: #1E3932;
+    --accent-resort-soft: #d4e9e2;
+    --accent-exp: #00754A;
+    --accent-exp-soft: #d4e9e2;
+    --accent-strong: #006241;
+    --border: #e0ddd6;
+    --shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.24);
+    --shadow-hover: 0 2px 4px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.08);
+    --radius: 12px;
   }
   [data-theme="dark"] {
-    --bg: #0f1419;
-    --surface: #1a212b;
-    --text: #e5e9f0;
-    --muted: #94a3b8;
-    --accent-resort: #60a5fa;
-    --accent-resort-soft: #1e3a5f;
+    --bg: #1E3932;
+    --surface: #2b5148;
+    --text: rgba(255,255,255,1.0);
+    --muted: rgba(255,255,255,0.70);
+    --accent-resort: #6ee7b7;
+    --accent-resort-soft: #0f3a1f;
     --accent-exp: #4ade80;
     --accent-exp-soft: #0f3a1f;
-    --border: #2d3748;
-    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    --accent-strong: #6ee7b7;
+    --border: rgba(255,255,255,0.12);
+    --shadow: 0 0 0.5px rgba(0,0,0,0.4), 0 1px 1px rgba(0,0,0,0.5);
+    --shadow-hover: 0 2px 6px rgba(0,0,0,0.5), 0 6px 12px rgba(0,0,0,0.35);
   }
 
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    font-family: "SoDoSans", -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Helvetica Neue", sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.6;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
     display: flex;
@@ -54,9 +60,12 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 8px 14px;
+    padding: 7px 16px;
     cursor: pointer;
     font-size: 13px;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
     color: var(--text);
   }
 
@@ -69,8 +78,10 @@
   header h1 {
     margin: 0 0 12px;
     font-size: 40px;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     line-height: 1.2;
+    color: var(--accent-strong);
   }
   header .lede {
     color: var(--muted);
@@ -105,7 +116,7 @@
     text-decoration: none;
     color: var(--text);
     box-shadow: var(--shadow);
-    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     display: block;
     position: relative;
     overflow: hidden;
@@ -116,14 +127,15 @@
     inset: 0;
     background: linear-gradient(135deg, var(--accent-soft), transparent);
     opacity: 0;
-    transition: opacity 0.15s;
+    transition: opacity 0.2s ease;
     pointer-events: none;
   }
   .nav-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.10);
+    box-shadow: var(--shadow-hover);
     border-color: var(--accent);
   }
+  .nav-card:active { transform: scale(0.98) translateY(0); }
   .nav-card:hover::before { opacity: 1; }
   .nav-card.resort { --accent: var(--accent-resort); --accent-soft: var(--accent-resort-soft); }
   .nav-card.experience { --accent: var(--accent-exp); --accent-soft: var(--accent-exp-soft); }
