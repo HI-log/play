@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HI-log · 유아 동반 가이드</title>
+<style>
+  :root {
+    --bg: #f4f7f2;
+    --surface: #ffffff;
+    --text: #1f2933;
+    --muted: #647184;
+    --accent-resort: #2b8aef;
+    --accent-resort-soft: #e6f0fd;
+    --accent-exp: #16a34a;
+    --accent-exp-soft: #dcfce7;
+    --border: #e5e7eb;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --radius: 16px;
+  }
+  [data-theme="dark"] {
+    --bg: #0f1419;
+    --surface: #1a212b;
+    --text: #e5e9f0;
+    --muted: #94a3b8;
+    --accent-resort: #60a5fa;
+    --accent-resort-soft: #1e3a5f;
+    --accent-exp: #4ade80;
+    --accent-exp-soft: #0f3a1f;
+    --border: #2d3748;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .theme-toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  header {
+    padding: 80px 24px 40px;
+    max-width: 880px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  header h1 {
+    margin: 0 0 12px;
+    font-size: 40px;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  header .lede {
+    color: var(--muted);
+    font-size: 17px;
+    margin: 0;
+  }
+  header .meta {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  main {
+    flex: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px;
+    width: 100%;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+  }
+
+  .nav-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-decoration: none;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-soft), transparent);
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+  }
+  .nav-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.10);
+    border-color: var(--accent);
+  }
+  .nav-card:hover::before { opacity: 1; }
+  .nav-card.resort { --accent: var(--accent-resort); --accent-soft: var(--accent-resort-soft); }
+  .nav-card.experience { --accent: var(--accent-exp); --accent-soft: var(--accent-exp-soft); }
+
+  .nav-card .icon-row {
+    font-size: 36px;
+    margin-bottom: 12px;
+    line-height: 1;
+  }
+  .nav-card h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .nav-card p {
+    margin: 0 0 16px;
+    color: var(--muted);
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-card .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .stat-chip {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .nav-card .cta {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-card .cta::after {
+    content: "→";
+    transition: transform 0.15s;
+  }
+  .nav-card:hover .cta::after { transform: translateX(4px); }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 32px 24px;
+  }
+  footer a { color: var(--muted); }
+
+  @media (max-width: 600px) {
+    header { padding: 56px 20px 28px; }
+    header h1 { font-size: 30px; }
+    header .lede { font-size: 15px; }
+    .theme-toggle { top: 16px; right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌙 다크</button>
+
+<header>
+  <h1>HI-log · 유아 동반 가이드</h1>
+  <p class="lede">2~4세 아이와 함께 갈 만한 곳을 정리한 인터랙티브 가이드</p>
+  <div class="meta">정리: 2026-05-19</div>
+</header>
+
+<main>
+  <div class="card-grid">
+
+    <a class="nav-card resort" href="./resort/">
+      <div class="icon-row">🏖️</div>
+      <h2>유아 동반 바다 리조트</h2>
+      <p>바다 발 담그기 + 모래놀이 좋아하는 유아용 리조트. 조식 뷔페 운영 여부까지 표기.</p>
+      <div class="stats">
+        <span class="stat-chip">4개 권역</span>
+        <span class="stat-chip">25곳+</span>
+        <span class="stat-chip">조식 표기</span>
+        <span class="stat-chip">TOP 3</span>
+      </div>
+      <span class="cta">바로가기</span>
+    </a>
+
+    <a class="nav-card experience" href="./experience/">
+      <div class="icon-row">🐑</div>
+      <h2>유아 체험 공간 가이드</h2>
+      <p>대관령 양떼목장처럼 직접 체험할 수 있는 공간 + 가족 나들이 명소. 지도·시즌 캘린더 뷰 지원.</p>
+      <div class="stats">
+        <span class="stat-chip">26개 테마</span>
+        <span class="stat-chip">162곳</span>
+        <span class="stat-chip">🗺️ 지도</span>
+        <span class="stat-chip">📅 캘린더</span>
+        <span class="stat-chip">✨ 신상</span>
+      </div>
+      <span class="cta">바로가기</span>
+    </a>
+
+  </div>
+</main>
+
+<footer>
+  <a href="https://github.com/HI-log/play" target="_blank">github.com/HI-log/play</a>
+</footer>
+
+<script>
+const themeBtn = document.getElementById("themeToggle");
+const saved = localStorage.getItem("theme-hilog");
+if (saved === "dark") {
+  document.documentElement.setAttribute("data-theme", "dark");
+  themeBtn.textContent = "☀️ 라이트";
+}
+themeBtn.addEventListener("click", () => {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  if (isDark) {
+    document.documentElement.removeAttribute("data-theme");
+    themeBtn.textContent = "🌙 다크";
+    localStorage.setItem("theme-hilog", "light");
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    themeBtn.textContent = "☀️ 라이트";
+    localStorage.setItem("theme-hilog", "dark");
+  }
+});
+</script>
+
+</body>
+</html>

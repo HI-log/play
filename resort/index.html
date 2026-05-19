@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>유아동반 바다 리조트 가이드</title>
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --text: #1f2933;
+    --muted: #647184;
+    --accent: #2b8aef;
+    --accent-soft: #e6f0fd;
+    --warn: #d97706;
+    --warn-soft: #fef3c7;
+    --good: #16a34a;
+    --good-soft: #dcfce7;
+    --bad: #dc2626;
+    --bad-soft: #fee2e2;
+    --border: #e5e7eb;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --radius: 14px;
+  }
+  [data-theme="dark"] {
+    --bg: #0f1419;
+    --surface: #1a212b;
+    --text: #e5e9f0;
+    --muted: #94a3b8;
+    --accent: #60a5fa;
+    --accent-soft: #1e3a5f;
+    --warn: #fbbf24;
+    --warn-soft: #3f2e0a;
+    --good: #4ade80;
+    --good-soft: #0f3a1f;
+    --bad: #f87171;
+    --bad-soft: #3f1818;
+    --border: #2d3748;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 32px 24px 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+  }
+  header .lede {
+    color: var(--muted);
+    font-size: 15px;
+    margin: 0 0 16px;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .top3 {
+    background: linear-gradient(135deg, var(--accent-soft), transparent);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .top3 h2 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: var(--accent);
+  }
+  .top3 ol {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+  }
+  .top3 li { margin-bottom: 4px; }
+  .top3 strong { color: var(--text); }
+
+  .controls {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    opacity: 0.6;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+  .card.hidden { display: none; }
+  .card.top {
+    border: 2px solid var(--accent);
+  }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .region-tag {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .top-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .beach {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .beach::before { content: "🏖️"; }
+
+  .breakfast {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    width: fit-content;
+  }
+  .breakfast.yes {
+    background: var(--good-soft);
+    color: var(--good);
+  }
+  .breakfast.partial {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .breakfast.no {
+    background: var(--bad-soft);
+    color: var(--bad);
+  }
+
+  .note {
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--border);
+  }
+  .note.warn { border-left-color: var(--warn); }
+
+  .count {
+    color: var(--muted);
+    font-size: 13px;
+    margin-left: auto;
+  }
+
+  footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  footer details {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+  }
+  footer summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text);
+  }
+  footer ul { padding-left: 18px; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--muted);
+    padding: 40px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 22px; }
+    .theme-toggle { top: 16px; right: 16px; }
+    .grid { padding: 0 16px 48px; gap: 12px; }
+    .controls { padding: 0 16px 16px; }
+    header { padding: 24px 16px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌙 다크</button>
+
+<header>
+  <h1>유아(2~4세)와 갈만한 바다 리조트</h1>
+  <p class="lede">바다 발 담그기 + 모래놀이를 좋아하는 유아 동반 가족용 · 조식 뷔페 운영 여부 표기</p>
+
+  <div class="top3">
+    <h2>⭐ 2~4세 기준 TOP 3</h2>
+    <ol>
+      <li><strong>쏠비치 양양 / 삼척</strong> — 해변 도보 접근성 최강 + 워터파크</li>
+      <li><strong>해비치 제주(표선)</strong> — 백사장·모래 질 국내 최상급, 수심 얕음</li>
+      <li><strong>롯데호텔 제주(중문)</strong> — 중문해변 + 사계절 온수 키즈풀</li>
+    </ol>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-box">
+    <input type="text" id="search" placeholder="리조트명 / 해변명으로 검색">
+  </div>
+  <div class="filter-group" id="regionFilter">
+    <span class="chip active" data-region="all">전체</span>
+    <span class="chip" data-region="jeju">제주</span>
+    <span class="chip" data-region="east">동해</span>
+    <span class="chip" data-region="south">남해·서남해</span>
+    <span class="chip" data-region="busan">부산·기장</span>
+  </div>
+  <div class="filter-group" id="breakfastFilter">
+    <span class="chip active" data-breakfast="all">조식 전체</span>
+    <span class="chip" data-breakfast="yes">⭕ 운영만</span>
+    <span class="chip" data-breakfast="exclude-no">풀빌라 제외</span>
+  </div>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <details>
+    <summary>예약 팁 & 시즌·준비물</summary>
+    <h4>예약 팁</h4>
+    <ul>
+      <li><strong>셰프스 키친(쏠비치 3곳)</strong>: 사전예약 필수. 미예약 시 입장 불가 케이스 다수</li>
+      <li><strong>해비치 섬모라 / 신라 파크뷰 / 롯데 페닌슐라</strong>: 성수기엔 1시간 단위 타임 예약</li>
+      <li>패키지의 "조식 2인 포함"이 보통 5~7만 원 저렴 → 패키지가로 비교</li>
+    </ul>
+    <h4>시즌·준비물</h4>
+    <ul>
+      <li><strong>시즌</strong>: 6월 말~8월 말이 발담그기 최적. 비수기엔 온수풀 보유 리조트 우선</li>
+      <li><strong>객실 옵션</strong>: 침대 가드 / 유아 욕조 / 이유식 기구 대여 (제주 토스카나·서머셋 강함)</li>
+      <li><strong>모래놀이 도구</strong>: 챙겨가는 게 안전</li>
+      <li><strong>그늘</strong>: 표선·낙산은 그늘 부족 → 비치텐트 필수</li>
+    </ul>
+    <h4>주의</h4>
+    <ul>
+      <li><strong>아난티 앳 부산 코브</strong>는 만 19세 이상 전용 → 같은 단지의 힐튼 부산 선택</li>
+      <li><strong>해비치 제주</strong> 일부 풀이 노키즈존 정책 변동 → 예약 시 확인</li>
+    </ul>
+  </details>
+
+  <details style="margin-top: 12px;">
+    <summary>참고 링크</summary>
+    <ul>
+      <li><a href="https://mom-mom.net/travel/playlists/650d3fba7b6f8db33b8df71c" target="_blank">전국 키캉스 성지 Best 85 (맘맘)</a></li>
+      <li><a href="https://enfant.designhouse.co.kr/magazine/type2view.php?num=56539" target="_blank">우리 아이 세 살까지, 최고의 리조트 13 (맘앤앙팡)</a></li>
+      <li><a href="https://www.sonohotelsresorts.com/solbeach_yy/restaurant/detail/DIN00000406" target="_blank">쏠비치 양양 셰프스 키친</a></li>
+      <li><a href="https://www.sonohotelsresorts.com/solbeach_sc/restaurant/detail/DIN00000350" target="_blank">쏠비치 삼척 셰프스 키친</a></li>
+      <li><a href="https://app.catchtable.co.kr/ct/shop/summora" target="_blank">해비치 제주 섬모라 (캐치테이블)</a></li>
+      <li><a href="https://m.shilla.net/jeju/dining/viewDining.do?lang=ko&contId=PAR" target="_blank">신라 제주 더 파크뷰</a></li>
+      <li><a href="https://www.klook.com/ko/activity/14597-peninsula-breakfast-omaro-spaghetti-meal-tickets-lotte-hotel-jeju/" target="_blank">롯데호텔 제주 페닌슐라 조식</a></li>
+      <li><a href="https://www.glad-hotels.com/maisongladjeju/dining/samdajeong.do" target="_blank">메종글래드 제주 삼다정</a></li>
+      <li><a href="https://www.shinhwaworld.com/conveniencesh/37776.jhtml" target="_blank">제주신화월드 신화테라스</a></li>
+      <li><a href="https://www.kensington.co.kr/rdh" target="_blank">켄싱턴 설악비치</a></li>
+      <li><a href="https://gjb.josunhotel.com/dining/aria.do" target="_blank">그랜드조선 부산 아리아</a></li>
+      <li><a href="https://www.busanparadisehotel.co.kr/front/facility/dinebuffet" target="_blank">파라다이스호텔 부산 뷔페</a></li>
+      <li><a href="https://www.lottehotel.com/haeundae-l7/ko/dining/restaurant-floating" target="_blank">롯데호텔 L7 해운대 Floating</a></li>
+      <li><a href="https://www.hanwharesort.co.kr/irsweb/resort3/resort/rs_addition_food.do?bp_cd=2101" target="_blank">한화리조트 거제 벨버디어</a></li>
+      <li><a href="https://travel.interpark.com/checkinnow/goods/GY0002357791" target="_blank">남해 사우스포인트 키즈풀빌라</a></li>
+    </ul>
+  </details>
+</footer>
+
+<script>
+const DATA = [
+  // 제주
+  { name: "해비치 호텔&리조트 제주", region: "jeju", regionLabel: "제주", beach: "표선해수욕장 도보", breakfast: "yes", breakfastText: "⭕ '섬모라' 07:00–10:00 · 성인 65,000 / 소인 36,000", note: "오션뷰 올데이다이닝. 표선해변 8만 평 백사장, 썰물 시 모래 광활. ⚠️ 일부 풀 노키즈존 정책 변동", noteType: "warn", top: true },
+  { name: "롯데호텔 제주", region: "jeju", regionLabel: "제주", beach: "중문색달 도보 5분", breakfast: "yes", breakfastText: "⭕ '페닌슐라' 뷔페 운영", note: "사계절 온수풀 '해온' + 어린이 슬라이드", top: true },
+  { name: "더 신라 제주", region: "jeju", regionLabel: "제주", beach: "중문색달 도보", breakfast: "yes", breakfastText: "⭕ '더 파크뷰' (조식·런치·디너 풀뷔페)", note: "호텔 뷔페계 정상급, 베이비/키즈 어메니티" },
+  { name: "그랜드조선 제주", region: "jeju", regionLabel: "제주", beach: "중문 도보권", breakfast: "yes", breakfastText: "⭕ '아라테이블' 뷔페", note: "" },
+  { name: "메종글래드 제주", region: "jeju", regionLabel: "제주", beach: "차량 5분", breakfast: "yes", breakfastText: "⭕ '삼다정' 07:00–10:00 · 성인 48,000 / 소인 28,000", note: "라이브 키친" },
+  { name: "호텔 토스카나 (서귀포)", region: "jeju", regionLabel: "제주", beach: "차량 필요", breakfast: "yes", breakfastText: "⭕ 조식 뷔페 운영", note: "38℃ 야외 온수풀, 키즈룸 34개" },
+  { name: "서머셋 제주신화월드", region: "jeju", regionLabel: "제주", beach: "차량 필요", breakfast: "partial", breakfastText: "△ 조식 별도 추가(현장결제), 단지 내 '신화테라스' 이용 가능", note: "2~3베드룸 + 주방·세탁기 → 이유식 가족 편함" },
+  { name: "신화월드 신화관/랜딩", region: "jeju", regionLabel: "제주", beach: "차량 필요", breakfast: "yes", breakfastText: "⭕ '신화테라스' 07:00–11:00", note: "신화테마파크 인접" },
+
+  // 동해
+  { name: "쏠비치 양양", region: "east", regionLabel: "동해", beach: "낙산해변 인접", breakfast: "yes", breakfastText: "⭕ '셰프스 키친' 2~3부제 (사전예약 필수)", note: "워터파크 '오션플레이'", top: true },
+  { name: "쏠비치 삼척", region: "east", regionLabel: "동해", beach: "삼척해변 도보 1분", breakfast: "yes", breakfastText: "⭕ '셰프스 키친' 3부제 07:00~11:20 (사전예약)", note: "해변 정면, 타임당 약 140명", top: true },
+  { name: "켄싱턴리조트 설악비치", region: "east", regionLabel: "동해", beach: "낙산해변 도보", breakfast: "yes", breakfastText: "⭕ '켄싱턴 모닝뷔페' 07:00–10:00 (입장 마감 09:30)", note: "가성비" },
+  { name: "씨마크 호텔 (강릉)", region: "east", regionLabel: "동해", beach: "경포 도보", breakfast: "yes", breakfastText: "⭕ 'BISTRO ON 8' 조식", note: "인피니티풀, 오션뷰" },
+  { name: "세인트존스 호텔 (강릉)", region: "east", regionLabel: "동해", beach: "강문해변 도보", breakfast: "yes", breakfastText: "⭕ '닥터로빈' / 'PIER 27' 뷔페", note: "키즈 어메니티 양호" },
+  { name: "라마다 동해", region: "east", regionLabel: "동해", beach: "망상해수욕장 인접", breakfast: "yes", breakfastText: "⭕ 호텔 자체 조식 뷔페", note: "망상 모래 곱고 수심 얕음" },
+
+  // 남해
+  { name: "쏠비치 진도", region: "south", regionLabel: "남해", beach: "자체 인공해변 / 가계해변", breakfast: "yes", breakfastText: "⭕ '셰프스 키친' 운영", note: "산토리니풍, 가족 객실 풍부" },
+  { name: "남해 사우스포인트 키즈풀빌라", region: "south", regionLabel: "남해", beach: "차량 이동", breakfast: "no", breakfastText: "❌ 풀빌라(룸내 식사). 패키지 따라 조식 박스", note: "객실 내 온수풀+정글짐+장난감" },
+  { name: "그리즐리 남해 키즈풀빌라", region: "south", regionLabel: "남해", beach: "차량 이동", breakfast: "no", breakfastText: "❌ 풀빌라형", note: "가족 단독" },
+  { name: "칠월키즈풀빌라", region: "south", regionLabel: "남해", beach: "차량 이동", breakfast: "no", breakfastText: "❌ 풀빌라형", note: "" },
+  { name: "한화리조트 거제 벨버디어", region: "south", regionLabel: "남해", beach: "학동·구조라 차량", breakfast: "yes", breakfastText: "⭕ '오스테리아 사르데냐' 조식 + 다수 다이닝", note: "뽀로로 키즈카페, 바운스 트램폴린" },
+
+  // 부산
+  { name: "힐튼 부산 (아난티 코브)", region: "busan", regionLabel: "부산", beach: "임랑해수욕장 도보", breakfast: "yes", breakfastText: "⭕ '다모임' 뷔페", note: "아난티 단지 시설 공유, 키즈풀 만 5세 이하" },
+  { name: "그랜드조선 부산", region: "busan", regionLabel: "부산", beach: "해운대 도보 1분", breakfast: "yes", breakfastText: "⭕ '아리아' 뷔페 (정원+오션뷰)", note: "해운대 모래사장 직결" },
+  { name: "파라다이스호텔 부산", region: "busan", regionLabel: "부산", beach: "해운대 도보", breakfast: "yes", breakfastText: "⭕ '온 더 플레이트' 06:30–10:00 (투숙객 전용)", note: "노천 온천" },
+  { name: "시그니엘 부산", region: "busan", regionLabel: "부산", beach: "광안리 뷰", breakfast: "yes", breakfastText: "⭕ '더 뷰' 뷔페", note: "해변 직접 도보는 멂" },
+  { name: "반얀트리 해운대", region: "busan", regionLabel: "부산", beach: "해운대 도보", breakfast: "yes", breakfastText: "⭕ 자체 조식 다이닝", note: "럭셔리, 키즈 제한 정책 사전 확인", noteType: "warn" },
+  { name: "롯데호텔 L7 해운대", region: "busan", regionLabel: "부산", beach: "해운대 도보", breakfast: "yes", breakfastText: "⭕ 'Floating' 조식", note: "" },
+];
+
+let state = {
+  region: "all",
+  breakfast: "all",
+  query: "",
+};
+
+const grid = document.getElementById("grid");
+const countEl = document.getElementById("count");
+
+function render() {
+  const q = state.query.trim().toLowerCase();
+  const filtered = DATA.filter(d => {
+    if (state.region !== "all" && d.region !== state.region) return false;
+    if (state.breakfast === "yes" && d.breakfast !== "yes") return false;
+    if (state.breakfast === "exclude-no" && d.breakfast === "no") return false;
+    if (q && !(d.name.toLowerCase().includes(q) || d.beach.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  countEl.textContent = `${filtered.length}곳`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty">조건에 맞는 리조트가 없어요. 필터를 풀어보세요.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(d => `
+    <div class="card${d.top ? " top" : ""}">
+      <div class="card-head">
+        <h3 class="card-name">${d.name}${d.top ? '<span class="top-badge">TOP</span>' : ""}</h3>
+        <span class="region-tag">${d.regionLabel}</span>
+      </div>
+      <div class="beach">${d.beach}</div>
+      <div class="breakfast ${d.breakfast === "yes" ? "yes" : d.breakfast === "partial" ? "partial" : "no"}">
+        ${d.breakfastText}
+      </div>
+      ${d.note ? `<div class="note${d.noteType === "warn" ? " warn" : ""}">${d.note}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+document.getElementById("regionFilter").addEventListener("click", e => {
+  if (!e.target.classList.contains("chip")) return;
+  document.querySelectorAll("#regionFilter .chip").forEach(c => c.classList.remove("active"));
+  e.target.classList.add("active");
+  state.region = e.target.dataset.region;
+  render();
+});
+
+document.getElementById("breakfastFilter").addEventListener("click", e => {
+  if (!e.target.classList.contains("chip")) return;
+  document.querySelectorAll("#breakfastFilter .chip").forEach(c => c.classList.remove("active"));
+  e.target.classList.add("active");
+  state.breakfast = e.target.dataset.breakfast;
+  render();
+});
+
+document.getElementById("search").addEventListener("input", e => {
+  state.query = e.target.value;
+  render();
+});
+
+const themeBtn = document.getElementById("themeToggle");
+const saved = localStorage.getItem("theme");
+if (saved === "dark") {
+  document.documentElement.setAttribute("data-theme", "dark");
+  themeBtn.textContent = "☀️ 라이트";
+}
+themeBtn.addEventListener("click", () => {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  if (isDark) {
+    document.documentElement.removeAttribute("data-theme");
+    themeBtn.textContent = "🌙 다크";
+    localStorage.setItem("theme", "light");
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    themeBtn.textContent = "☀️ 라이트";
+    localStorage.setItem("theme", "dark");
+  }
+});
+
+render();
+</script>
+</body>
+</html>

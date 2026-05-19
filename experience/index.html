@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>유아 체험 공간 가이드</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+  :root {
+    --bg: #f4f7f2;
+    --surface: #ffffff;
+    --text: #1f2933;
+    --muted: #647184;
+    --accent: #16a34a;
+    --accent-soft: #dcfce7;
+    --warn: #d97706;
+    --warn-soft: #fef3c7;
+    --border: #e5e7eb;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --radius: 14px;
+  }
+  [data-theme="dark"] {
+    --bg: #0f1419;
+    --surface: #1a212b;
+    --text: #e5e9f0;
+    --muted: #94a3b8;
+    --accent: #4ade80;
+    --accent-soft: #0f3a1f;
+    --warn: #fbbf24;
+    --warn-soft: #3f2e0a;
+    --border: #2d3748;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 32px 24px 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+  }
+  header .lede {
+    color: var(--muted);
+    font-size: 15px;
+    margin: 0 0 16px;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .intro {
+    background: linear-gradient(135deg, var(--accent-soft), transparent);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .intro strong { color: var(--accent); }
+
+  .controls {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .control-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .control-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    min-width: 50px;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    opacity: 0.6;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px 64px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .category-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .region-tag {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .free-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+  .indoor-badge {
+    display: inline-block;
+    background: #6366f1;
+    color: white;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .new-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+  }
+  .new-badge::before { content: "✨"; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+  .card.is-new {
+    border-color: #f97316;
+    border-width: 2px;
+  }
+
+  .location {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .location::before { content: "📍"; }
+
+  .experience {
+    font-size: 13.5px;
+    color: var(--text);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .experience-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .price {
+    font-size: 12.5px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .price::before { content: "💰"; }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .small-tag {
+    font-size: 11px;
+    background: var(--bg);
+    color: var(--muted);
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .count {
+    color: var(--muted);
+    font-size: 13px;
+    margin-left: auto;
+    font-weight: 600;
+  }
+
+  .section-title {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 8px 0 -4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  footer details {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+  }
+  footer summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text);
+  }
+  footer ul { padding-left: 18px; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--muted);
+    padding: 40px;
+    font-size: 14px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .stat strong { color: var(--accent); font-size: 14px; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 22px; }
+    .theme-toggle { top: 16px; right: 16px; }
+    .grid { padding: 16px 16px 48px; gap: 12px; }
+    .controls { padding: 0 16px 8px; }
+    header { padding: 24px 16px 12px; }
+  }
+
+  /* 탭 (리스트 / 지도 / 캘린더) */
+  .view-tabs {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .view-tab {
+    background: none;
+    border: none;
+    padding: 12px 18px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .view-tab:hover { color: var(--text); }
+  .view-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .view-panel { display: none; }
+  .view-panel.active { display: block; }
+
+  /* 지도 */
+  #map {
+    max-width: 1200px;
+    margin: 16px auto 64px;
+    height: 640px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .leaflet-popup-content {
+    margin: 12px 14px;
+    line-height: 1.5;
+    font-family: inherit;
+  }
+  .leaflet-popup-content .popup-name {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .leaflet-popup-content .popup-meta {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .leaflet-popup-content .popup-desc {
+    font-size: 12.5px;
+  }
+
+  /* 캘린더 */
+  .calendar-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px 64px;
+  }
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .month-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .month-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .month-card.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .month-card .month-num {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .month-card .month-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .month-card.active .month-label { color: rgba(255,255,255,0.85); }
+  .month-card .month-count {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .season-pill {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    background: var(--bg);
+    color: var(--muted);
+  }
+  .month-card.active .season-pill {
+    background: rgba(255,255,255,0.2);
+    color: white;
+  }
+  .calendar-hint {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 700px) {
+    .month-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .month-grid { grid-template-columns: repeat(2, 1fr); }
+    #map { height: 420px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">🌙 다크</button>
+
+<header>
+  <h1>유아 체험 공간 가이드</h1>
+  <p class="lede">대관령 양떼목장처럼 아이가 직접 체험할 수 있는 전국 공간 모음 · 14개 테마, 60+곳</p>
+
+  <div class="intro">
+    <strong>📚 26개 테마</strong><br>
+    🐑 야외목장 · 🏠 실내동물원 · 🌾 수확/농장 · 🦋 곤충생태 · 🐠 수족관·식물원 · 🌊 갯벌<br>
+    🏛️ 어린이박물관 · 🔬 과학관 · 🌌 천문대 · 🌳 숲·휴양림 · 👷 직업체험 · 🎨 공예·전통 · 🍞 요리·베이킹 · 🚂 교통박물관<br>
+    🎢 테마파크·워터파크 · 🌷 공원·전망대 · 🎭 문화·테마관 · 🧸 키즈카페·실내놀이<br>
+    🏘️ 농촌·어촌마을 · 🦇 동굴 · 🖼️ 미술관 · 🏕️ 캠핑·글램핑<br>
+    ⛪ 사찰·템플스테이 · 🚢 유람선·해양 · ❄️ 겨울 액티비티 · 🎪 공연·인형극<br>
+    <span style="color: #ef4444; font-weight: 600;">✨ 신상</span> = 최근 3개월(2026-02 이후) 개관·리뉴얼 — 옵션 필터에서 "신상만"으로 모아 볼 수 있어요.
+  </div>
+</header>
+
+<div class="controls">
+  <div class="control-row">
+    <div class="search-box">
+      <input type="text" id="search" placeholder="검색 (예: 알파카, 딸기, 갯벌, 도자기, 별)">
+    </div>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="control-row">
+    <span class="control-label">권역</span>
+    <div class="filter-group" id="regionFilter">
+      <span class="chip active" data-region="all">전체</span>
+      <span class="chip" data-region="gangwon">강원</span>
+      <span class="chip" data-region="metro">수도권</span>
+      <span class="chip" data-region="other">충청·전라·경상</span>
+      <span class="chip" data-region="jeju">제주</span>
+    </div>
+  </div>
+  <div class="control-row">
+    <span class="control-label">테마</span>
+    <div class="filter-group" id="typeFilter">
+      <span class="chip active" data-type="all">전체</span>
+      <span class="chip" data-type="outdoor-farm">🐑 목장</span>
+      <span class="chip" data-type="indoor-zoo">🏠 실내동물원</span>
+      <span class="chip" data-type="harvest">🌾 수확</span>
+      <span class="chip" data-type="insect">🦋 곤충생태</span>
+      <span class="chip" data-type="aqua">🐠 수족관·식물원</span>
+      <span class="chip" data-type="mudflat">🌊 갯벌</span>
+      <span class="chip" data-type="museum">🏛️ 어린이박물관</span>
+      <span class="chip" data-type="science">🔬 과학관</span>
+      <span class="chip" data-type="astro">🌌 천문대</span>
+      <span class="chip" data-type="forest">🌳 숲·휴양림</span>
+      <span class="chip" data-type="job">👷 직업체험</span>
+      <span class="chip" data-type="craft">🎨 공예·전통</span>
+      <span class="chip" data-type="cooking">🍞 요리·베이킹</span>
+      <span class="chip" data-type="transport">🚂 교통박물관</span>
+      <span class="chip" data-type="amusement">🎢 테마파크·워터파크</span>
+      <span class="chip" data-type="nature">🌷 공원·전망대</span>
+      <span class="chip" data-type="culture">🎭 문화·테마관</span>
+      <span class="chip" data-type="kidscafe">🧸 키즈카페·실내놀이</span>
+      <span class="chip" data-type="village">🏘️ 농촌·어촌마을</span>
+      <span class="chip" data-type="cave">🦇 동굴</span>
+      <span class="chip" data-type="art">🖼️ 미술관</span>
+      <span class="chip" data-type="camping">🏕️ 캠핑·글램핑</span>
+      <span class="chip" data-type="temple">⛪ 사찰·템플스테이</span>
+      <span class="chip" data-type="cruise">🚢 유람선·해양</span>
+      <span class="chip" data-type="winter">❄️ 겨울 액티비티</span>
+      <span class="chip" data-type="show">🎪 공연·인형극</span>
+    </div>
+  </div>
+  <div class="control-row">
+    <span class="control-label">옵션</span>
+    <div class="filter-group" id="optionFilter">
+      <span class="chip" data-option="new">✨ 신상만 (최근 3개월)</span>
+      <span class="chip" data-option="indoor">🏠 실내만 (비/추위 OK)</span>
+      <span class="chip" data-option="free">💸 무료/저렴</span>
+    </div>
+  </div>
+</div>
+
+<div class="view-tabs">
+  <button class="view-tab active" data-view="list">📋 리스트</button>
+  <button class="view-tab" data-view="map">🗺️ 지도</button>
+  <button class="view-tab" data-view="calendar">📅 시즌 캘린더</button>
+</div>
+
+<div class="view-panel active" id="view-list">
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="view-panel" id="view-map">
+  <div id="map"></div>
+</div>
+
+<div class="view-panel" id="view-calendar">
+  <div class="calendar-wrap">
+    <p class="calendar-hint">월을 클릭하면 그 시즌에 좋은 장소만 리스트에 필터링돼요. 다시 누르면 해제.</p>
+    <div class="month-grid" id="monthGrid"></div>
+    <div class="grid" id="calendarGrid"></div>
+  </div>
+</div>
+
+<footer>
+  <details>
+    <summary>2~4세 데려갈 때 체크리스트</summary>
+    <h4>준비물</h4>
+    <ul>
+      <li><strong>여벌옷·물티슈</strong> — 동물 먹이주기·갯벌·수확체험은 옷이 무조건 더러워짐</li>
+      <li><strong>장화/슬립온</strong> — 갯벌·진흙 농장은 운동화 비추</li>
+      <li><strong>모자·자외선차단제</strong> — 야외 목장은 그늘 부족</li>
+      <li><strong>유모차</strong> — 양떼목장 산책로는 경사 있음 → 힙시트 병행 권장</li>
+    </ul>
+    <h4>시즌</h4>
+    <ul>
+      <li><strong>4~6월 / 9~10월</strong> — 야외 목장 골든시즌</li>
+      <li><strong>11월~5월</strong> — 딸기 수확체험</li>
+      <li><strong>봄~가을</strong> — 갯벌체험 (썰물 시간 확인 필수)</li>
+      <li><strong>겨울·우천</strong> — 실내 동물원·박물관·과학관으로 대체</li>
+    </ul>
+    <h4>예약 팁</h4>
+    <ul>
+      <li>국립박물관/과학관 어린이관 — 사전예약 필수, 회차제 운영</li>
+      <li>천문대 — 야간 운영(금·토 위주), 사전예약 필수</li>
+      <li>키자니아 — 평일·오전권이 저렴, 만 3세부터 가능</li>
+      <li>요리/공예 클래스 — 만 2~3세 가능 클래스인지 연령 제한 확인</li>
+    </ul>
+    <h4>주의</h4>
+    <ul>
+      <li>대형 가축(소·말) 가까이 갈 땐 보호자 동반 필수</li>
+      <li>실내 동물 카페는 위생 정책·연령 제한 확인 (일부는 36개월 이상)</li>
+      <li>갯벌은 썰물 타이밍 못 맞추면 진흙뿐 → 물때표 확인</li>
+      <li>천문대 별 보기는 날씨 변수 큼 → 환불 정책 확인</li>
+    </ul>
+  </details>
+
+  <details style="margin-top: 12px;">
+    <summary>참고 링크</summary>
+    <ul>
+      <li><strong>목장/동물</strong></li>
+      <li><a href="https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=3cc094b0-7a97-46cd-8649-87378cb24484" target="_blank">대관령 양떼목장</a></li>
+      <li><a href="https://www.nhasfarmland.com/" target="_blank">안성팜랜드</a></li>
+      <li><a href="https://cheesepark.kr/" target="_blank">임실치즈테마파크</a></li>
+      <li><a href="http://fathersgarden.co.kr/animal" target="_blank">파더스가든</a></li>
+      <li><a href="https://www.alpacajeju.com/" target="_blank">제주 알파카월드</a></li>
+      <li><strong>박물관/과학관</strong></li>
+      <li><a href="https://www.museum.go.kr/MUSEUM/contents/M0104010000.do?schM=child&act=intro" target="_blank">국립중앙박물관 어린이박물관</a></li>
+      <li><a href="https://gcm.ggcf.kr/" target="_blank">경기도어린이박물관</a></li>
+      <li><a href="https://child.nmcik.or.kr/" target="_blank">국립어린이박물관 (세종)</a></li>
+      <li><a href="https://www.csc.go.kr/" target="_blank">국립어린이과학관</a></li>
+      <li><a href="https://www.science.go.kr/menu?menuId=MENU00815" target="_blank">국립중앙과학관 어린이/유아체험관</a></li>
+      <li><strong>천문대/숲</strong></li>
+      <li><a href="https://nowoncosmos.or.kr/" target="_blank">노원천문우주과학관</a></li>
+      <li><a href="https://www.astrocamp.net/" target="_blank">일산 어린이천문대</a></li>
+      <li><a href="https://parks.seoul.go.kr/forestkid/" target="_blank">서울 유아숲체험원</a></li>
+      <li><strong>직업/공예</strong></li>
+      <li><a href="https://www.kidzania.co.kr/" target="_blank">키자니아 서울</a></li>
+      <li><a href="https://www.koreajobworld.or.kr/" target="_blank">한국잡월드</a></li>
+      <li><a href="https://hanok.seoul.go.kr/" target="_blank">서울 한옥체험관 (전통공예)</a></li>
+      <li><strong>갯벌</strong></li>
+      <li><a href="https://www.meis.go.kr/mes/mudFlat/experience/view1.do" target="_blank">올바른 갯벌체험 (해수부)</a></li>
+      <li><strong>교통</strong></li>
+      <li><a href="https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=1c4d3f10-3000-4612-a4e8-7774407ba869" target="_blank">의왕철도박물관</a></li>
+    </ul>
+  </details>
+</footer>
+
+<script>
+const DATA = [
+  // ===== ✨ 신상 (최근 3개월 이내 개관) =====
+  { name: "서울숲 '초록초록' 키즈카페", icon: "🌳", region: "metro", regionLabel: "서울·성동", type: "forest", location: "서울 성동구 서울숲", experience: "2026 서울국제정원박람회 개막일 오픈. 숲속 야외 키즈카페. 예약 없이 무료 이용, 포르쉐 동행정원 등 인근 체험 연계.", price: "무료", free: true, isNew: true, newDate: "2026-05-01", tags: ["NEW", "무료", "예약 불필요", "서울숲"] },
+  { name: "서울식물원 서울형 키즈카페", icon: "🐠", region: "metro", regionLabel: "서울·강서", type: "aqua", location: "서울식물원 식물문화센터 4층", experience: "레고 정원 콘셉트 실내 키즈카페. 4~9세 22명 정원, 주중 3회·주말 5회 사전예약제.", price: "저렴 (서울형 키즈카페 요금)", indoor: true, isNew: true, newDate: "2026-04-28", tags: ["NEW", "레고 정원", "실내", "사전예약"] },
+  { name: "롯데월드 메이플스토리 테마구역", icon: "👷", region: "metro", regionLabel: "서울·송파", type: "job", location: "롯데월드 어드벤처", experience: "세계 최초 메이플스토리 테마 구역. 캐릭터 미트앤그릿·놀이기구·포토존.", price: "롯데월드 입장권", indoor: true, isNew: true, newDate: "2026-04-03", tags: ["NEW", "세계 최초", "메이플스토리"] },
+
+  // ===== 야외 목장 =====
+  { name: "대관령 양떼목장", icon: "🐑", region: "gangwon", regionLabel: "강원·평창", type: "outdoor-farm", location: "강원 평창군", experience: "양 먹이주기 + 산책로 1시간 코스. 트랙터 마차 운영.", price: "성인 7,000원", tags: ["양", "산책로", "포토존"] },
+  { name: "대관령 아기동물농장", icon: "🐑", region: "gangwon", regionLabel: "강원·강릉", type: "outdoor-farm", location: "강원 강릉시 사천면", experience: "아기돼지·타조·토끼·병아리·사슴·거북이·양·오리·말·소 + 송아지 우유 주기.", price: "1만원대", tags: ["다양한 동물", "송아지 우유"] },
+  { name: "강릉 알파카 목장", icon: "🐑", region: "gangwon", regionLabel: "강원·강릉", type: "outdoor-farm", location: "강원 강릉시", experience: "알파카 먹이주기·산책. 아기동물농장 패키지 결합 가능.", price: "1만원대", tags: ["알파카", "패키지"] },
+  { name: "안성팜랜드", icon: "🐑", region: "metro", regionLabel: "경기·안성", type: "outdoor-farm", location: "경기 안성시", experience: "황소·면양·거위·돼지·당나귀 + 체험승마·미니말·깡통열차. 계절 꽃밭 유명.", price: "대인 15,000 / 소인 13,000", tags: ["대형 목장", "승마", "꽃밭"] },
+  { name: "여주 목장", icon: "🐑", region: "metro", regionLabel: "경기·여주", type: "outdoor-farm", location: "경기 여주시 가남읍", experience: "젖소 만지기 + 치즈·아이스크림 직접 만들기.", price: "입장 무료 / 체험 별도", free: true, tags: ["젖소", "치즈 만들기"] },
+  { name: "파주 우농타조농장", icon: "🐑", region: "metro", regionLabel: "경기·파주", type: "outdoor-farm", location: "경기 파주시", experience: "타조·토끼·공작새·패럿. 타조알 껍질 목걸이 만들기.", price: "1만원 내외", tags: ["타조", "공예"] },
+  { name: "뜰농장", icon: "🐑", region: "metro", regionLabel: "경기", type: "outdoor-farm", location: "경기 외곽", experience: "돼지·닭·토끼 먹이주기 + 모래놀이·레일썰매·에어바운스.", price: "1만원대", tags: ["놀이시설"] },
+  { name: "임실치즈테마파크", icon: "🐑", region: "other", regionLabel: "전북·임실", type: "outdoor-farm", location: "전북 임실군", experience: "치즈 직접 만들기 + 동물농장 + 예절체험관 + 포토존.", price: "체험비 1만원대", tags: ["치즈 만들기", "테마파크"] },
+  { name: "칠곡 양떼목장", icon: "🐑", region: "other", regionLabel: "경북·칠곡", type: "outdoor-farm", location: "경북 칠곡군", experience: "대관령보다 저렴. 신생 힐링 목장, 풍경 좋음.", price: "성인 5,000원대", tags: ["양", "가성비"] },
+  { name: "파더스가든", icon: "🐑", region: "jeju", regionLabel: "제주", type: "outdoor-farm", location: "제주", experience: "토끼·꽃사슴·염소·양·한라말·앵무새. 감성정원 테마파크.", price: "먹이 2,000원 / 입장 별도", tags: ["감성정원", "포토"] },
+  { name: "제주양떼목장", icon: "🐑", region: "jeju", regionLabel: "제주·서귀포", type: "outdoor-farm", location: "제주 서귀포시", experience: "사료통 지급. 트랙터 마차 투어로 둘러보기 편함.", price: "성인 7,000원대", tags: ["양", "트랙터 마차"] },
+  { name: "새별 프렌즈", icon: "🐑", region: "jeju", regionLabel: "제주·애월", type: "outdoor-farm", location: "제주 애월읍 새별오름", experience: "2만 평 광활한 초지. 알파카·양·말과 자유 교감.", price: "성인 1만원대", tags: ["알파카", "새별오름"] },
+  { name: "아침미소목장", icon: "🐑", region: "jeju", regionLabel: "제주·애월", type: "outdoor-farm", location: "제주 애월읍", experience: "젖소·한우 목장. 예약 없이 방문 가능.", price: "무료", free: true, tags: ["젖소", "자유 입장"] },
+  { name: "목장카페 드르쿰다", icon: "🐑", region: "jeju", regionLabel: "제주·서귀포", type: "outdoor-farm", location: "제주 서귀포 성산", experience: "승마(1·2인승) + 카트 + 동물 먹이주기 + 미니전기차.", price: "체험별 1~3만원", tags: ["승마", "카트"] },
+  { name: "제주 알파카월드", icon: "🐑", region: "jeju", regionLabel: "제주", type: "outdoor-farm", location: "제주", experience: "판초 입고 알파카와 산책. 사진 명소.", price: "성인 1.5만원대", tags: ["알파카", "산책"] },
+  { name: "도치돌 알파카 목장", icon: "🐑", region: "jeju", regionLabel: "제주·애월", type: "outdoor-farm", location: "제주 애월읍", experience: "알파카 먹이주기 + 자연 산책.", price: "1만원대", tags: ["알파카"] },
+
+  // ===== 실내 동물원 =====
+  { name: "주렁주렁 (하남·코엑스·수원)", icon: "🏠", region: "metro", regionLabel: "수도권", type: "indoor-zoo", location: "하남스타필드 / 코엑스 / 수원", experience: "토끼·기니피그·수달·캥거루·거북이 만지기·먹이주기.", price: "성인 25,000~30,000", indoor: true, tags: ["실내", "수달", "캥거루"] },
+  { name: "테이블에이 (홍대·송도·다산)", icon: "🏠", region: "metro", regionLabel: "수도권", type: "indoor-zoo", location: "마포구 / 연수구 / 남양주", experience: "미어캣·알파카·라쿤·카멜레온·친칠라. 동물 카페 + 실내동물원.", price: "1~2만원대", indoor: true, tags: ["미어캣", "카페형"] },
+  { name: "쥬뗌므 키즈랜드 시흥", icon: "🏠", region: "metro", regionLabel: "경기·시흥", type: "indoor-zoo", location: "시흥시 장곡동", experience: "토끼·거북이·돼지·양·고슴도치·미어캣·앵무새·파충류·닥터피시.", price: "1만원대", indoor: true, tags: ["다양한 종"] },
+  { name: "쥬라리움 하남", icon: "🏠", region: "metro", regionLabel: "경기·하남", type: "indoor-zoo", location: "하남 스타필드 인근", experience: "아기들이 좋아하는 동물 먹이주기.", price: "1만원대", indoor: true, tags: ["실내", "유아 친화"] },
+
+  // ===== 수확/농장 =====
+  { name: "행복텃밭 (화성)", icon: "🌾", region: "metro", regionLabel: "경기·화성", type: "harvest", location: "경기 화성시", experience: "딸기·귤·사과·고구마·감자 수확 + 동물농장·모래놀이터.", price: "체험별 1만원대", tags: ["딸기", "수확", "모래놀이"] },
+  { name: "아띠 어린이딸기체험농장", icon: "🌾", region: "metro", regionLabel: "수도권", type: "harvest", location: "수도권 근교", experience: "어린이 전용 딸기체험. 키 작은 아이도 손 닿는 높이 베드.", price: "1.5만원대 / 박스 포함", tags: ["딸기", "어린이 전용"] },
+  { name: "어린농부딸기체험농장", icon: "🌾", region: "metro", regionLabel: "수도권", type: "harvest", location: "경기 근교", experience: "4~6월 딸기 따기. 매년 운영 일정 확인.", price: "1만원대", tags: ["딸기", "봄"] },
+
+  // ===== 곤충 생태 =====
+  { name: "서울어린이대공원", icon: "🦋", region: "metro", regionLabel: "서울·광진", type: "insect", location: "서울 광진구", experience: "텃밭 고구마 캐기(가을), 곤충탐사대 프로그램.", price: "입장 무료 / 프로그램 별도", free: true, tags: ["고구마", "곤충", "예약"] },
+  { name: "센트럴 곤충생태농장", icon: "🦋", region: "metro", regionLabel: "경기·화성", type: "insect", location: "경기 화성시", experience: "환경생태 체험교실. 곤충 특징과 동물 대하는 태도 교육.", price: "저렴", tags: ["곤충", "교육형"] },
+  { name: "예천 곤충생태원", icon: "🦋", region: "other", regionLabel: "경북·예천", type: "insect", location: "경북 예천군", experience: "살아있는 곤충과 교감. 자연 신비를 배우는 교육의 장.", price: "성인 3,000원대", tags: ["곤충", "생태교육"] },
+
+  // ===== 수족관/식물원 =====
+  { name: "코엑스 아쿠아리움", icon: "🐠", region: "metro", regionLabel: "서울·강남", type: "aqua", location: "서울 강남구 코엑스몰", experience: "대형 실내 수족관. 가오리 먹이주기, 인어공주 공연.", price: "성인 30,000 / 소인 26,000", indoor: true, tags: ["가오리", "공연", "도심"] },
+  { name: "아쿠아플라넷 일산", icon: "🐠", region: "metro", regionLabel: "경기·고양", type: "aqua", location: "경기 고양시 일산서구", experience: "수족관 + 동물 구역 통합 입장. 비 오는 날 강력 추천.", price: "성인 25,000~", indoor: true, tags: ["수족관+동물", "실내"] },
+  { name: "서울대공원", icon: "🐠", region: "metro", regionLabel: "경기·과천", type: "aqua", location: "경기 과천시", experience: "동물원 + 식물원 + 서울랜드 + 호수 산책로.", price: "성인 5,000 / 36개월 미만 무료", free: true, tags: ["동물원", "식물원", "넓음"] },
+  { name: "한택식물원", icon: "🐠", region: "metro", regionLabel: "경기·용인", type: "aqua", location: "용인시 백암면", experience: "국내 최대 사립 식물원. 자생식물 9,700종 + 어린이 자연학습.", price: "성인 9,000 / 소인 6,000", tags: ["식물원", "자연학습"] },
+
+  // ===== 갯벌 =====
+  { name: "선도리 갯벌체험마을", icon: "🌊", region: "other", regionLabel: "전남·보성", type: "mudflat", location: "전남 보성군 벌교읍", experience: "전국 최대규모, 우리나라 1호 갯벌체험장. 봄 바지락·맛조개.", price: "1만원대 (장비 포함)", tags: ["1호 갯벌체험장", "바지락"] },
+  { name: "왜목마을 갯벌체험", icon: "🌊", region: "other", regionLabel: "충남·당진", type: "mudflat", location: "충남 당진시 석문면", experience: "봄~가을 갯벌체험. 어린아이 무료. 일출·일몰 명소.", price: "어린이 무료 / 성인 5,000~", free: true, tags: ["당진", "일출"] },
+  { name: "마시안 갯벌체험장", icon: "🌊", region: "metro", regionLabel: "인천·중구", type: "mudflat", location: "인천 중구 을왕동", experience: "수도권 접근성 최고. 조개·소라 잡기. 인천공항 가깝.", price: "5,000~", tags: ["수도권", "공항 근처"] },
+
+  // ===== 어린이박물관 =====
+  { name: "국립중앙박물관 어린이박물관", icon: "🏛️", region: "metro", regionLabel: "서울·용산", type: "museum", location: "서울 용산구", experience: "'상상 동물 이야기', '옛날 사람들은 어떻게 살았을까' 상설 체험. 2026.3.16 운영 시간·회차 개편 리뉴얼.", price: "무료 (사전예약)", free: true, indoor: true, isNew: true, newDate: "2026-03-16 (리뉴얼)", tags: ["NEW 리뉴얼", "무료", "용산공원", "사전예약"] },
+  { name: "국립민속박물관 어린이박물관", icon: "🏛️", region: "metro", regionLabel: "서울·종로", type: "museum", location: "서울 종로구 경복궁", experience: "우리 문화·세계 문화 주제 체험형 전시. 교육 프로그램 다수.", price: "무료", free: true, indoor: true, tags: ["무료", "민속", "경복궁"] },
+  { name: "경기도어린이박물관", icon: "🏛️", region: "metro", regionLabel: "경기·용인", type: "museum", location: "용인시 기흥구", experience: "튼튼놀이터(암벽·시소)·동화 속 보물찾기·미니씨어터·에코아틀리에.", price: "4,000원", indoor: true, tags: ["체험형 강자", "튼튼놀이터"] },
+  { name: "국립농업박물관 어린이박물관", icon: "🏛️", region: "metro", regionLabel: "경기·수원", type: "museum", location: "수원시", experience: "벼농사 모험 체험, 초록초록마을, '아기농부' 수확 체험.", price: "무료", free: true, indoor: true, tags: ["농업", "무료", "아기농부"] },
+  { name: "국립어린이박물관 (세종)", icon: "🏛️", region: "other", regionLabel: "세종", type: "museum", location: "세종 국립박물관단지", experience: "신규 개관. 박물관단지 내 다양한 체험. 사전예약.", price: "무료 (사전예약)", free: true, indoor: true, tags: ["신규", "사전예약"] },
+  { name: "삼성어린이박물관 / 헬로뮤지엄 / 짜장면박물관", icon: "🏛️", region: "metro", regionLabel: "수도권", type: "museum", location: "수도권 각지", experience: "테마별 사립 어린이박물관. 헬로뮤지엄(예술), 짜장면박물관(인천) 등.", price: "5,000~10,000", indoor: true, tags: ["사립", "테마"] },
+
+  // ===== 과학관 =====
+  { name: "국립중앙과학관 유아체험관", icon: "🔬", region: "other", regionLabel: "대전", type: "science", location: "대전 유성구", experience: "7세 이하 미취학 전용관. 누리과정 연계(3~5세). 회당 20명 선착순.", price: "무료 (현장접수)", free: true, indoor: true, tags: ["유아 전용관", "현장접수", "대전"] },
+  { name: "국립과천과학관 유아체험관", icon: "🔬", region: "metro", regionLabel: "경기·과천", type: "science", location: "경기 과천시", experience: "체험작동형 전시물 45점. 신체·정서·언어·사회성 발달.", price: "4,000원 (어린이 2,000)", indoor: true, tags: ["체험형 45점", "수도권"] },
+  { name: "국립어린이과학관", icon: "🔬", region: "metro", regionLabel: "서울·종로", type: "science", location: "서울 종로구", experience: "어린이 전용 과학 놀이터. 6세 이하 무료.", price: "6세 이하 무료", free: true, indoor: true, tags: ["6세 이하 무료", "도심"] },
+  { name: "인천어린이과학관", icon: "🔬", region: "metro", regionLabel: "인천·계양", type: "science", location: "인천 계양구", experience: "유아 대상 교육 프로그램과 체험활동. 수도권 접근성.", price: "4,000원", indoor: true, tags: ["인천", "유아 프로그램"] },
+  { name: "국립부산과학관", icon: "🔬", region: "other", regionLabel: "부산·기장", type: "science", location: "부산 기장군", experience: "어린이관 + 유아 체험존. 해양·자동차·항공 테마.", price: "3,000원", indoor: true, tags: ["부산", "유아존"] },
+
+  // ===== 천문대 =====
+  { name: "노원천문우주과학관", icon: "🌌", region: "metro", regionLabel: "서울·노원", type: "astro", location: "서울 노원구 동일로", experience: "VR 우주체험실 + 천체투영실(돔 9m) + 천체망원경.", price: "성인 3,000 / 어린이 1,500", indoor: true, tags: ["VR", "플라네타리움"] },
+  { name: "일산 어린이천문대", icon: "🌌", region: "metro", regionLabel: "경기·고양", type: "astro", location: "경기 고양시 일산", experience: "어린이 전용 프로그램. 별·별자리·망원경 사용법.", price: "프로그램별 2~5만원", tags: ["어린이 전용", "가족 별 관측"] },
+  { name: "자연과별 가평천문대", icon: "🌌", region: "metro", regionLabel: "경기·가평", type: "astro", location: "경기 가평군", experience: "펜션 옥상 천문대. 목·금 19:00~22:00 별 관찰.", price: "관람비 1만원대 + 숙박", tags: ["펜션 결합", "가평"] },
+  { name: "시립서울천문대", icon: "🌌", region: "metro", regionLabel: "서울", type: "astro", location: "서울", experience: "6세 이상. 초등 5학년 미만은 성인 동반 필수.", price: "5,000~", indoor: true, tags: ["6세 이상"] },
+
+  // ===== 숲·휴양림 =====
+  { name: "서울 유아숲체험원 (75개소)", icon: "🌳", region: "metro", regionLabel: "서울 전역", type: "forest", location: "서울 25개 자치구", experience: "야외놀이시설+숲체험시설. 별도 신청 없이 보호자 동반 자유 이용.", price: "무료", free: true, tags: ["무료", "자치구별", "자유 이용"] },
+  { name: "용인산림교육센터 유아숲체험원", icon: "🌳", region: "metro", regionLabel: "경기·용인", type: "forest", location: "용인시", experience: "산림교육사 가이드 프로그램. 단체·개인 가능.", price: "무료~저렴", free: true, tags: ["가이드", "용인"] },
+  { name: "숲e랑 숲체원 (전국 15개)", icon: "🌳", region: "other", regionLabel: "전국", type: "forest", location: "경북4·전남4·강원3·기타", experience: "가족 숙박+숲체험 통합. 숲e랑 통합예약.", price: "숙박 5~10만원대", tags: ["숙박형", "통합예약", "전국"] },
+  { name: "성남·안양·창원 유아숲체험원", icon: "🌳", region: "metro", regionLabel: "수도권·경남", type: "forest", location: "각 시 지정 장소", experience: "지자체 운영 유아 전용 숲. 정기 프로그램 운영.", price: "무료", free: true, tags: ["지자체", "무료"] },
+
+  // ===== 직업체험 =====
+  { name: "키자니아 서울", icon: "👷", region: "metro", regionLabel: "서울·잠실", type: "job", location: "롯데월드몰", experience: "만 3세~16세. 90+개 직업 체험. 잠실 필수 코스.", price: "주말 1일권 6~7만원", indoor: true, tags: ["만 3세부터", "90+ 직업"] },
+  { name: "한국잡월드 어린이체험관", icon: "👷", region: "metro", regionLabel: "경기·성남", type: "job", location: "성남 분당", experience: "초등 5학년까지. 직업 체험관 + 진로 체험.", price: "5,000~10,000", indoor: true, tags: ["가성비", "분당"] },
+
+  // ===== 공예/전통 =====
+  { name: "북촌전통공예체험관", icon: "🎨", region: "metro", regionLabel: "서울·종로", type: "craft", location: "서울 북촌 한옥마을", experience: "요일별 3가지 다른 공예 프로그램. 우리나라 전통공예 소개.", price: "프로그램별 1~2만원", indoor: true, tags: ["북촌", "전통", "요일별"] },
+  { name: "공주한옥마을 한지·도자기 공방", icon: "🎨", region: "other", regionLabel: "충남·공주", type: "craft", location: "공주시 한옥마을", experience: "한지공방 + 도자기공방. 한옥 숙박과 결합 가능.", price: "프로그램별 1~2만원", tags: ["한지", "도자기", "한옥 숙박"] },
+  { name: "헤이리 도자기 체험학교", icon: "🎨", region: "metro", regionLabel: "경기·파주", type: "craft", location: "헤이리 예술마을", experience: "전문 강사 1:1. 색화장토 장식, 30일 후 완성품 배송.", price: "2~3만원대", indoor: true, tags: ["도자기", "헤이리"] },
+  { name: "문경 도자기 체험", icon: "🎨", region: "other", regionLabel: "경북·문경", type: "craft", location: "문경시", experience: "문경 도자기 본고장. 흙 빚기·물레 체험.", price: "1~2만원대", tags: ["도자기", "본고장"] },
+  { name: "이천 도자예술마을", icon: "🎨", region: "metro", regionLabel: "경기·이천", type: "craft", location: "이천시", experience: "도예촌 일대. 다수 공방 + 가족 체험 패키지.", price: "1~2만원대", tags: ["이천", "공방 밀집"] },
+
+  // ===== 요리/베이킹 =====
+  { name: "제주 토토아뜰리에", icon: "🍞", region: "jeju", regionLabel: "제주", type: "cooking", location: "제주", experience: "제주당근파운드·뿔소라크림파스타·귤머랭파이. 50분 클래스.", price: "2~3만원대", indoor: true, tags: ["제주 식재료", "쿠킹"] },
+  { name: "아이손컴퍼니 (김포)", icon: "🍞", region: "metro", regionLabel: "경기·김포", type: "cooking", location: "김포시", experience: "만 2세부터 가능. 정서·두뇌 발달 쿠킹 프로젝트.", price: "2~3만원대", indoor: true, tags: ["만 2세부터", "유아 친화"] },
+  { name: "분당 판교 베이킹클래스", icon: "🍞", region: "metro", regionLabel: "경기·성남", type: "cooking", location: "성남 분당·판교", experience: "유아·키즈·커플 베이킹 원데이. 스콘·케이크.", price: "2~4만원대", indoor: true, tags: ["판교", "원데이"] },
+  { name: "부산 베이킹 하루", icon: "🍞", region: "other", regionLabel: "부산·수영", type: "cooking", location: "부산 수영구 광안동", experience: "타임당 4인 프라이빗. 광안리 인근.", price: "2~3만원대", indoor: true, tags: ["프라이빗", "광안리"] },
+  { name: "잠실 베이킹 클래스 (솜씨당 등)", icon: "🍞", region: "metro", regionLabel: "서울·송파", type: "cooking", location: "잠실 일대", experience: "15+ 베이킹 메뉴 선택. 가족 단위 가능.", price: "2~4만원대", indoor: true, tags: ["잠실", "메뉴 다양"] },
+
+  // ===== 교통 박물관 =====
+  { name: "의왕 철도박물관", icon: "🚂", region: "metro", regionLabel: "경기·의왕", type: "transport", location: "1호선 의왕역", experience: "기관사 운전체험 + 디오라마 + 야외 증기기관차·통일호.", price: "성인 2,000 / 어린이 1,000", tags: ["기차", "운전체험", "저렴"] },
+  { name: "의왕레일파크", icon: "🚂", region: "metro", regionLabel: "경기·의왕", type: "transport", location: "의왕시", experience: "48인승 관람열차 30분 코스. 레일바이크 못 타는 유아 대안.", price: "1만원대", tags: ["관람열차", "유아용"] },
+  { name: "기차왕국박물관카페", icon: "🚂", region: "metro", regionLabel: "인천·남동", type: "transport", location: "인천대공원 남문 인근", experience: "기차 모형 260+점 전시. 카페 결합. 부담 없이 방문.", price: "음료 + 입장료", indoor: true, tags: ["카페형", "모형", "인천"] },
+  { name: "제주항공우주박물관", icon: "🚂", region: "jeju", regionLabel: "제주·서귀포", type: "transport", location: "제주 서귀포 한경면", experience: "실제 비행기·헬리콥터. 우주 테마 키즈카페급 놀이. 로봇·천문.", price: "성인 10,000 / 청소년 8,000", indoor: true, tags: ["비행기", "우주", "키즈카페급"] },
+  { name: "삼성화재 모빌리티뮤지엄 (구 자동차박물관)", icon: "🚂", region: "metro", regionLabel: "경기·용인", type: "transport", location: "용인시 처인구", experience: "클래식카 + 자동차 역사 전시. 키즈 코너.", price: "성인 6,000 / 어린이 4,000", indoor: true, tags: ["자동차", "클래식카"] },
+
+  // ===== 🎢 테마파크·놀이공원·워터파크 =====
+  { name: "에버랜드", icon: "🎢", region: "metro", regionLabel: "경기·용인", type: "amusement", location: "용인시 처인구 포곡읍", experience: "국내 최대 테마파크. 키즈 어트랙션·사파리·튤립축제(봄)·장미축제. 36개월 미만 무료.", price: "종일권 64,000 / 36개월 미만 무료", tags: ["사파리", "꽃축제", "유아 어트랙션"] },
+  { name: "롯데월드 어드벤처", icon: "🎢", region: "metro", regionLabel: "서울·송파", type: "amusement", location: "송파구 잠실", experience: "도심 실내+야외 테마파크. 키즈토리아 유아존. 메이플스토리 신규 구역.", price: "종일권 62,000 / 36개월 미만 무료", indoor: true, tags: ["실내+야외", "키즈토리아", "도심"] },
+  { name: "서울랜드", icon: "🎢", region: "metro", regionLabel: "경기·과천", type: "amusement", location: "서울대공원 옆", experience: "유아·어린이 어트랙션 풍부. 서울대공원 동물원과 연계.", price: "종일권 40,000원대", tags: ["유아 친화", "가성비", "동물원 연계"] },
+  { name: "한국민속촌", icon: "🎢", region: "metro", regionLabel: "경기·용인", type: "amusement", location: "용인시 기흥구", experience: "전통 가옥·민속놀이 + 어린이 놀이공원. 전통 체험과 어트랙션 결합.", price: "종일권 33,000 / 어린이 27,000", tags: ["전통", "어린이 놀이공원"] },
+  { name: "경주월드", icon: "🎢", region: "other", regionLabel: "경북·경주", type: "amusement", location: "경주시 보문관광단지", experience: "실내 키즈 공간 + 시즌 이벤트. 보문호 인근.", price: "종일권 50,000원대", tags: ["키즈존", "경주"] },
+  { name: "뽀로로 & 타요 테마파크", icon: "🎢", region: "jeju", regionLabel: "제주·서귀포", type: "amusement", location: "서귀포시", experience: "실내외 어린이 전용 놀이공원. 캐릭터 콘텐츠 충실.", price: "1일권 25,000원대", indoor: true, tags: ["뽀로로", "타요", "캐릭터"] },
+  { name: "캐리비안베이", icon: "🎢", region: "metro", regionLabel: "경기·용인", type: "amusement", location: "에버랜드 단지", experience: "유아 전용 키디풀·파도풀·실내존. 사계절 운영.", price: "성수기 90,000원대", tags: ["워터파크", "유아풀", "실내존"] },
+  { name: "오션월드", icon: "🎢", region: "metro", regionLabel: "강원·홍천", type: "amusement", location: "비발디파크 단지", experience: "이집트 테마 워터파크. 유아풀·키즈슬라이드.", price: "성수기 70,000원대", tags: ["워터파크", "이집트 테마"] },
+  { name: "웅진플레이도시", icon: "🎢", region: "metro", regionLabel: "경기·부천", type: "amusement", location: "부천시 원미구", experience: "사계절 실내 워터파크 + 스파. 유아풀 충실.", price: "1일권 50,000원대", indoor: true, tags: ["실내", "사계절", "스파"] },
+  { name: "김해 롯데워터파크", icon: "🎢", region: "other", regionLabel: "경남·김해", type: "amusement", location: "김해 장유", experience: "국내 최대 실내 파도풀 + 토들러풀(유아 전용).", price: "성수기 70,000원대", tags: ["실내 파도풀", "토들러풀"] },
+  { name: "신화워터파크", icon: "🎢", region: "jeju", regionLabel: "제주·서귀포", type: "amusement", location: "신화월드 단지", experience: "제주 최대 키즈맞춤 워터파크. 키 기준별 어트랙션 안내.", price: "성수기 60,000원대", tags: ["제주", "키즈맞춤"] },
+  { name: "뽀로로 아쿠아빌리지 (블루원)", icon: "🎢", region: "other", regionLabel: "경북·경주", type: "amusement", location: "블루원 리조트", experience: "유아 전용 풀·슬라이드·물총놀이터. 숙박 결합.", price: "성수기 50,000원대", indoor: true, tags: ["뽀로로", "유아 전용"] },
+
+  // ===== 🌷 자연 명소·공원·전망대 =====
+  { name: "반포한강공원", icon: "🌷", region: "metro", regionLabel: "서울·서초", type: "nature", location: "서울 서초구", experience: "달빛무지개분수·야외수영장(여름)·동작대교 전망대. 유모차 친화 평지.", price: "무료 (수영장 별도)", free: true, tags: ["무지개분수", "야외수영장", "유모차"] },
+  { name: "뚝섬한강공원", icon: "🌷", region: "metro", regionLabel: "서울·광진", type: "nature", location: "서울 광진구", experience: "어린이 놀이터·자전거 대여·수영장. 가족 피크닉 성지.", price: "무료", free: true, tags: ["놀이터", "자전거", "피크닉"] },
+  { name: "여의도 한강공원", icon: "🌷", region: "metro", regionLabel: "서울·영등포", type: "nature", location: "서울 영등포구", experience: "벚꽃길(4월 초)·물빛광장·수상택시. 봄 벚꽃 명소.", price: "무료", free: true, tags: ["벚꽃", "물빛광장"] },
+  { name: "서울숲", icon: "🌷", region: "metro", regionLabel: "서울·성동", type: "nature", location: "서울 성동구", experience: "35만 평 + 사슴우리·바람의 언덕·곤충식물원. 5월 초록초록 키즈카페 NEW.", price: "무료", free: true, tags: ["사슴우리", "바람언덕", "넓음"] },
+  { name: "올림픽공원", icon: "🌷", region: "metro", regionLabel: "서울·송파", type: "nature", location: "송파구 방이동", experience: "9경(나홀로나무·들꽃마루 등)·잔디광장·자전거 대여·유아 놀이터.", price: "무료", free: true, tags: ["나홀로나무", "잔디", "9경"] },
+  { name: "일산 호수공원", icon: "🌷", region: "metro", regionLabel: "경기·고양", type: "nature", location: "고양시 일산동구", experience: "국내 최대 인공호수. 자전거·산책로·꽃박람회(봄)·아쿠아플라넷 옆.", price: "무료", free: true, tags: ["호수", "꽃박람회", "넓음"] },
+  { name: "남산 N서울타워", icon: "🌷", region: "metro", regionLabel: "서울·용산", type: "nature", location: "남산", experience: "케이블카+전망대. 야경·노을·연인 자물쇠. 아이는 케이블카 자체가 어트랙션.", price: "케이블카 왕복 14,000 / 전망대 21,000", tags: ["케이블카", "전망대", "야경"] },
+  { name: "부산 송도해상케이블카 (에어크루즈)", icon: "🌷", region: "other", regionLabel: "부산·서구", type: "nature", location: "부산 서구 송도", experience: "바다 위 1.6km 케이블카. 크리스털 캐빈도 있음. 송도해변+스카이워크.", price: "왕복 일반 17,000 / 크리스털 22,000", tags: ["케이블카", "바다", "송도"] },
+  { name: "통영 케이블카", icon: "🌷", region: "other", regionLabel: "경남·통영", type: "nature", location: "통영시 미륵산", experience: "국내 최장 1.9km. 미륵산 정상에서 한려해상 조망.", price: "왕복 17,000원대", tags: ["케이블카", "한려해상"] },
+  { name: "여수 해상케이블카", icon: "🌷", region: "other", regionLabel: "전남·여수", type: "nature", location: "돌산↔자산공원", experience: "여수 야경 명소. 크리스털 캐빈 있음. 한 가족 통째로 탑승 가능.", price: "왕복 일반 17,000 / 크리스털 24,000", tags: ["야경", "크리스털"] },
+  { name: "에버랜드 튤립축제 / 장미축제", icon: "🌷", region: "metro", regionLabel: "경기·용인", type: "nature", location: "에버랜드", experience: "봄(4~5월) 튤립 120만 송이, 초여름(5~6월) 장미 700종. 포토 천국.", price: "에버랜드 입장권 포함", tags: ["튤립", "장미", "계절"] },
+  { name: "안성 팜랜드 호밀밭", icon: "🌷", region: "metro", regionLabel: "경기·안성", type: "nature", location: "안성팜랜드", experience: "초봄 청보리·여름 해바라기·가을 핑크뮬리. 인생샷 명소.", price: "팜랜드 입장권 포함", tags: ["계절꽃", "포토"] },
+
+  // ===== 🎭 문화·전시·테마박물관 =====
+  { name: "경복궁", icon: "🎭", region: "metro", regionLabel: "서울·종로", type: "culture", location: "서울 종로구", experience: "한복 입으면 입장료 무료. 수문장 교대식. 아이 한복 사진 명소.", price: "한복 착용시 무료 / 성인 3,000", free: true, tags: ["한복 무료", "수문장 교대식"] },
+  { name: "북촌한옥마을", icon: "🎭", region: "metro", regionLabel: "서울·종로", type: "culture", location: "서울 종로구", experience: "전통 한옥 골목 + 공예 체험관 다수. 동네 자체가 박물관.", price: "거리 무료", free: true, tags: ["한옥", "골목", "공예"] },
+  { name: "전주 한옥마을", icon: "🎭", region: "other", regionLabel: "전북·전주", type: "culture", location: "전주시", experience: "한복 체험·한지·전통놀이. 1박 한옥 숙박과 결합 추천.", price: "거리 무료 / 체험 별도", tags: ["한복", "한옥 숙박"] },
+  { name: "덕평공룡수목원", icon: "🎭", region: "metro", regionLabel: "경기·이천", type: "culture", location: "이천시 마장면", experience: "공룡 모형 + 수목원 + 키즈 놀이존. 아이 첫 공룡 체험으로 적합.", price: "성인 12,000 / 어린이 9,000", tags: ["공룡", "수목원"] },
+  { name: "고성공룡박물관", icon: "🎭", region: "other", regionLabel: "경남·고성", type: "culture", location: "고성군 하이면", experience: "공룡발자국 화석지(세계 3대) + 실내 전시관. 공룡엑스포 격년 개최.", price: "성인 3,000 / 어린이 1,500", tags: ["발자국 화석", "공룡엑스포"] },
+  { name: "해남 우항리 공룡박물관", icon: "🎭", region: "other", regionLabel: "전남·해남", type: "culture", location: "해남군 황산면", experience: "전국 최대 규모 공룡박물관. 실물 크기 공룡뼈 화석.", price: "성인 3,000 / 어린이 1,500", tags: ["전국 최대", "화석"] },
+  { name: "익산 다이노키즈월드", icon: "🎭", region: "other", regionLabel: "전북·익산", type: "culture", location: "익산시 함라면", experience: "공룡 조형물 + 실내외 체험. 가족 테마파크.", price: "1만원대", tags: ["공룡", "체험"] },
+  { name: "트릭아이뮤지엄 홍대", icon: "🎭", region: "metro", regionLabel: "서울·마포", type: "culture", location: "홍대입구", experience: "착시 그림 사진 놀이. AR 연동. 우천 시 강추.", price: "성인 17,000 / 어린이 13,000", indoor: true, tags: ["착시", "포토", "AR"] },
+  { name: "아르떼뮤지엄 (제주·강릉·여수)", icon: "🎭", region: "jeju", regionLabel: "제주·강릉·여수", type: "culture", location: "각 지점", experience: "디스트릭트 미디어아트 전시. 폭포·해변·정글 몰입형 영상.", price: "성인 17,000 / 어린이 10,000", indoor: true, tags: ["미디어아트", "몰입형"] },
+  { name: "빛의 벙커 / 빛의 시어터", icon: "🎭", region: "jeju", regionLabel: "제주·서울", type: "culture", location: "성산·워커힐", experience: "벙커·극장 공간 활용 미디어아트. 명화 영상.", price: "성인 18,000 / 어린이 11,000", indoor: true, tags: ["미디어아트", "명화"] },
+  { name: "그라운드시소 / 디뮤지엄", icon: "🎭", region: "metro", regionLabel: "서울", type: "culture", location: "성수·서촌·홍대", experience: "기획전시 다수. 어린이 동반 OK 전시도 많음. 사전 확인 필수.", price: "성인 15,000~", indoor: true, tags: ["기획전시", "감각적"] },
+
+  // ===== 🧸 키즈카페·실내놀이·북카페 =====
+  { name: "서울형 키즈카페 (200+개소)", icon: "🧸", region: "metro", regionLabel: "서울 전역", type: "kidscafe", location: "각 자치구", experience: "120분 1,000~5,000원 공공 키즈카페. 아동 1인당 7㎡·보육교사 의무. 우리동네키움 예약.", price: "120분 1,000~5,000", free: true, indoor: true, tags: ["공공", "저렴", "우리동네키움"] },
+  { name: "서울상상나라 (어린이대공원 내)", icon: "🧸", region: "metro", regionLabel: "서울·광진", type: "kidscafe", location: "어린이대공원", experience: "체험형 어린이전용 박물관 + 키즈카페. 창의력 자극 콘텐츠.", price: "4,000원", indoor: true, tags: ["체험형", "어린이전용"] },
+  { name: "화랑대 철도공원 키즈카페", icon: "🧸", region: "metro", regionLabel: "서울·노원", type: "kidscafe", location: "노원구 공릉동", experience: "야외 키즈카페 + 옛 기차 전시. 푸른수목원 등과 함께 '여기저기 키즈카페' 30곳 중 하나.", price: "저렴", free: true, tags: ["야외", "기차", "여기저기"] },
+  { name: "별마당 도서관 (코엑스)", icon: "🧸", region: "metro", regionLabel: "서울·강남", type: "kidscafe", location: "코엑스몰", experience: "13m 높이 책장 + 어린이 도서 코너. 무료 개방. 비/추위 피난처.", price: "무료", free: true, indoor: true, tags: ["무료", "책", "포토"] },
+  { name: "송파 책박물관", icon: "🧸", region: "metro", regionLabel: "서울·송파", type: "kidscafe", location: "송파구 문정동", experience: "국내 최초 공립 책박물관. 어린이 책방 + 체험 프로그램.", price: "무료", free: true, indoor: true, tags: ["무료", "책박물관"] },
+  { name: "코엑스 / 영풍문고 / 교보문고 어린이 코너", icon: "🧸", region: "metro", regionLabel: "전국", type: "kidscafe", location: "주요 지점", experience: "유아 전집·그림책 자유 열람. 시간 보내기 좋은 무료 실내 공간.", price: "무료", free: true, indoor: true, tags: ["서점", "무료", "그림책"] },
+  { name: "점핑짐 / 바운스 트램폴린파크", icon: "🧸", region: "metro", regionLabel: "전국", type: "kidscafe", location: "주요 도시", experience: "트램폴린 점프존. 36개월 이상 권장. 한화 거제 벨버디어에도 있음.", price: "1시간 15,000~", indoor: true, tags: ["트램폴린", "에너지 발산"] },
+  { name: "키즈빌리지 / 챔피언 키즈카페", icon: "🧸", region: "metro", regionLabel: "수도권", type: "kidscafe", location: "주요 도시", experience: "대형 실내 키즈카페. 미끄럼틀·볼풀·역할놀이존. 연령별 구역 분리.", price: "1.5~2.5만원대", indoor: true, tags: ["대형", "볼풀", "역할놀이"] },
+
+  // ===== 🏘️ 농촌·어촌체험마을 =====
+  { name: "양평 모꼬지마을", icon: "🏘️", region: "metro", regionLabel: "경기·양평", type: "village", location: "양평군", experience: "맑은 계곡 농촌체험. 미꾸라지 잡기·뗏목타기·민속놀이·왕달팽이 체험.", price: "체험별 5,000~15,000", tags: ["미꾸라지", "뗏목", "계곡"] },
+  { name: "안산 선감 어촌체험마을", icon: "🏘️", region: "metro", regionLabel: "경기·안산", type: "village", location: "안산시 단원구 선감동", experience: "조수간만 차 큰 완만한 간척지. 아이도 안전한 조개잡이 입문지.", price: "1만원대", tags: ["조개잡이", "간척지", "수도권"] },
+  { name: "보령 무창포 어촌체험마을", icon: "🏘️", region: "other", regionLabel: "충남·보령", type: "village", location: "보령시 웅천읍", experience: "신비의 바닷길 + 갯벌체험. 매월 보름·그믐 바닷길 열림.", price: "체험 1만원대", tags: ["바닷길", "갯벌"] },
+  { name: "충남 어촌체험마을 (대야도·송석·왕산 등)", icon: "🏘️", region: "other", regionLabel: "충남", type: "village", location: "태안·서천·당진 일대", experience: "충남 다수의 어촌체험마을. 권역별 갯벌·바지락·낙지 체험.", price: "체험 1만원대", tags: ["충남", "권역별", "갯벌"] },
+  { name: "춘천 해피초원목장", icon: "🏘️", region: "gangwon", regionLabel: "강원·춘천", type: "village", location: "춘천시 사북면", experience: "'한국의 스위스'. 양 먹이주기·당나귀 타기 + 캠핑·글램핑 결합.", price: "성인 7,000원대 + 캠핑 별도", tags: ["양", "당나귀", "캠핑 결합"] },
+  { name: "전국 농촌체험휴양마을 (웰촌)", icon: "🏘️", region: "other", regionLabel: "전국", type: "village", location: "농어촌공사 지정", experience: "농어촌공사 공식 포털 'welchon.com'에서 지역·테마별 검색. 1박 농가숙박 가능.", price: "체험 1~3만원 / 숙박 5만~", tags: ["공식 포털", "농가숙박"] },
+
+  // ===== 🦇 동굴 =====
+  { name: "광명동굴", icon: "🦇", region: "metro", regionLabel: "경기·광명", type: "cave", location: "광명시 가학동", experience: "폐광 → 동굴테마파크. '보물탐험'(미니포크레인·보물찾기·공룡화석·보석채취). 여름엔 시원.", price: "성인 6,000 / 어린이 2,000", indoor: true, tags: ["여름 시원", "보물탐험", "⚠️ 계단 많음(유모차 X)"] },
+  { name: "삼척 환선굴", icon: "🦇", region: "gangwon", regionLabel: "강원·삼척", type: "cave", location: "삼척시 신기면", experience: "동양 최대 석회암 동굴(5.3억 년). 2010~ 모노레일 운행 → 걷지 않고 관람.", price: "성인 4,500 + 모노레일 7,000", tags: ["동양 최대", "모노레일", "유모차 대안"] },
+  { name: "단양 고수동굴", icon: "🦇", region: "other", regionLabel: "충북·단양", type: "cave", location: "단양군 단양읍", experience: "천연기념물 제256호. 3층 구조 + 웅석궁·독수리바위. 자연관찰 학습장.", price: "성인 11,000 / 어린이 6,000", tags: ["천연기념물", "단양 8경"] },
+  { name: "정선 화암동굴", icon: "🦇", region: "gangwon", regionLabel: "강원·정선", type: "cave", location: "정선군 화암면", experience: "금광 + 자연동굴 결합. 모노레일 입구 이동. 4계절 일정 온도.", price: "성인 5,000원대", tags: ["금광", "모노레일"] },
+
+  // ===== 🖼️ 미술관 =====
+  { name: "국립현대미술관 어린이미술관", icon: "🖼️", region: "metro", regionLabel: "서울·과천·청주", type: "art", location: "서울관/과천관/덕수궁관/청주관", experience: "Edu-Studio 어린이 전용 공간. 작가연계·소장품연계·미디어랩·카페 아틀리에. 자기주도 감상.", price: "무료~4,000", free: true, indoor: true, tags: ["무료", "Edu-Studio", "자기주도"] },
+  { name: "리움미술관", icon: "🖼️", region: "metro", regionLabel: "서울·용산", type: "art", location: "한남동", experience: "현대미술 + 고미술. 36개월 미만 무료. 사전 예약제. 가족 관람 OK.", price: "성인 무료 (특별전 별도)", free: true, indoor: true, tags: ["사전예약", "고미술", "현대"] },
+  { name: "현대어린이책미술관 (MOKA)", icon: "🖼️", region: "metro", regionLabel: "경기·성남", type: "art", location: "판교 현대백화점", experience: "국내 최초 어린이 책 미술관. 원화 전시 + 체험형 프로그램. 어린이 동선 친화.", price: "성인 6,000 / 어린이 6,000", indoor: true, tags: ["어린이 전용", "그림책 원화", "판교"] },
+  { name: "백남준아트센터", icon: "🖼️", region: "metro", regionLabel: "경기·용인", type: "art", location: "기흥구", experience: "비디오아트 거장. 어린이 교육 프로그램 풍부. 미디어아트 체험.", price: "성인 4,000 / 어린이 무료", free: true, indoor: true, tags: ["비디오아트", "어린이 무료"] },
+  { name: "부산현대미술관 (MOCA Busan)", icon: "🖼️", region: "other", regionLabel: "부산·사하", type: "art", location: "을숙도", experience: "을숙도 자연 옆 미술관. 어린이 프로그램 + 무료 입장.", price: "무료", free: true, indoor: true, tags: ["무료", "을숙도", "자연 인접"] },
+  { name: "헬로뮤지엄", icon: "🖼️", region: "metro", regionLabel: "서울·옥수", type: "art", location: "성동구 옥수동", experience: "어린이 전용 사립 미술관. 감각·체험 중심 기획전시.", price: "성인 6,000 / 어린이 6,000", indoor: true, tags: ["어린이 전용", "체험형"] },
+
+  // ===== 🏕️ 캠핑·글램핑 =====
+  { name: "고대산 캠핑리조트", icon: "🏕️", region: "metro", regionLabel: "경기·연천", type: "camping", location: "연천군 신서면", experience: "수도권 근접. 키즈카페·동물체험·모래놀이·워터슬라이드·에어바운스·딸기체험.", price: "글램핑 1박 15만~", tags: ["수도권", "키즈 시설 다양"] },
+  { name: "원주 치악 캠핑리조트", icon: "🏕️", region: "gangwon", regionLabel: "강원·원주", type: "camping", location: "치악산 학곡저수지", experience: "치악산 자락. 별 관측 가능한 야경 명소. 카라반·글램핑.", price: "1박 10~15만", tags: ["별 보기", "치악산"] },
+  { name: "춘천 해피초원목장 캠핑", icon: "🏕️", region: "gangwon", regionLabel: "강원·춘천", type: "camping", location: "사북면", experience: "양떼목장 옆 캠핑. 동물 먹이주기 + 글램핑·캠핑 결합.", price: "1박 10~20만", tags: ["양떼", "목장 결합"] },
+  { name: "가평 산바라기 캠핑장", icon: "🏕️", region: "metro", regionLabel: "경기·가평", type: "camping", location: "가평군", experience: "서울 근교. 별 보기·전통놀이·도자기 페인팅·목공예 체험 프로그램.", price: "1박 10~15만", tags: ["서울 근교", "체험 다양"] },
+  { name: "해남 오시아노 캠핑장", icon: "🏕️", region: "other", regionLabel: "전남·해남", type: "camping", location: "해남군 화원면", experience: "바다 옆. 유아·어린이 자전거 대여, 주말 어린이 카트·ATV(4~11월).", price: "1박 10~20만", tags: ["바다", "자전거", "카트"] },
+  { name: "명지산카라반글램핑", icon: "🏕️", region: "metro", regionLabel: "경기·가평", type: "camping", location: "가평 북면", experience: "카라반 + 글램핑 동시 운영. 어린 아이 안전한 호텔형 카라반.", price: "카라반 1박 15만~", tags: ["카라반", "호텔형"] },
+  { name: "어반티지 글램핑 카라반", icon: "🏕️", region: "metro", regionLabel: "인천·강화", type: "camping", location: "강화군", experience: "강화도 글램핑·카라반. 키즈 시설 + 서울에서 가까움.", price: "1박 15~25만", tags: ["강화", "수도권 근접"] },
+
+  // ===== ⛪ 사찰·템플스테이 =====
+  { name: "진관사 (서울)", icon: "⛪", region: "metro", regionLabel: "서울·은평", type: "temple", location: "은평구 진관동 북한산", experience: "도심 속 비구니 사찰. 가족 템플스테이 + 사찰음식 + 어린이 동반 가능한 짧은 둘레길.", price: "당일체험 3~5만 / 1박 8~15만", tags: ["가족형", "사찰음식", "둘레길"] },
+  { name: "봉은사 (서울)", icon: "⛪", region: "metro", regionLabel: "서울·강남", type: "temple", location: "강남구 삼성동", experience: "코엑스 옆 도심 사찰. 무료 산책·연등(부처님오신날). 사찰 입문 적합.", price: "무료 / 템플스테이 별도", free: true, tags: ["도심", "무료", "연등"] },
+  { name: "양산 통도사", icon: "⛪", region: "other", regionLabel: "경남·양산", type: "temple", location: "영축산 통도사", experience: "유네스코 세계유산. 가족·어린이 템플스테이 운영. 영축산 둘레길.", price: "1박 8~12만", tags: ["유네스코", "가족형"] },
+  { name: "합천 해인사", icon: "⛪", region: "other", regionLabel: "경남·합천", type: "temple", location: "가야산 해인사", experience: "팔만대장경 보관 사찰. 가족 템플스테이 + 자연 속 숙박.", price: "1박 7~10만", tags: ["팔만대장경", "유네스코"] },
+  { name: "공식 포털 templestay.com", icon: "⛪", region: "other", regionLabel: "전국 100+ 사찰", type: "temple", location: "전국", experience: "가족형 프로그램 필터링 가능. 사찰별 어린이 동반 정책 다름 → 사전 전화 확인 필수.", price: "당일 3~5만 / 1박 7~15만", tags: ["공식 포털", "필터링"] },
+
+  // ===== 🚢 유람선·해양 =====
+  { name: "월미도 비너스 크루즈", icon: "🚢", region: "metro", regionLabel: "인천·중구", type: "cruise", location: "인천 월미도", experience: "414t 유람선. 영종대교·인천대교 조망 1시간 20분. 선내 러시아 무용·서커스 공연.", price: "성인 15,000~25,000", tags: ["선상 공연", "1.5시간"] },
+  { name: "국립인천해양박물관", icon: "🚢", region: "metro", regionLabel: "인천·중구", type: "cruise", location: "월미도", experience: "2024.12 개관 신규. 어린이박물관 + 디지털 실감 영상실 + 해양교류사실. 무료.", price: "무료", free: true, indoor: true, isNew: true, newDate: "2024-12 개관", tags: ["신규", "무료", "실감영상"] },
+  { name: "한강 이랜드 크루즈", icon: "🚢", region: "metro", regionLabel: "서울·여의도", type: "cruise", location: "여의도 한강선착장", experience: "한강 라이브뮤직·뷔페·불꽃 크루즈. 가족 라이브 크루즈 옵션.", price: "성인 25,000~", tags: ["한강", "라이브", "야경"] },
+  { name: "부산 송도 거북섬 / 태종대 다누비열차", icon: "🚢", region: "other", regionLabel: "부산", type: "cruise", location: "송도·영도", experience: "송도 거북섬 산책로 + 태종대 다누비열차로 해안 절경. 케이블카와 결합 가능.", price: "다누비열차 4,000", tags: ["다누비열차", "해안 절경"] },
+  { name: "여수 유람선·돌산대교 야경 크루즈", icon: "🚢", region: "other", regionLabel: "전남·여수", type: "cruise", location: "여수항", experience: "오동도·돌산대교 야경 크루즈. 케이블카와 함께 묶어 코스화.", price: "성인 15,000~", tags: ["야경", "오동도"] },
+
+  // ===== ❄️ 겨울 액티비티 =====
+  { name: "화천 산천어축제", icon: "❄️", region: "gangwon", regionLabel: "강원·화천", type: "winter", location: "화천천 일대", experience: "축구장 40개 규모 얼음판. 어린이용 뜰채 체험·얼음썰매·간식 부스. 매년 1월.", price: "낚시 입장 13,000원대", tags: ["1월", "뜰채", "얼음썰매"] },
+  { name: "평창 송어축제", icon: "❄️", region: "gangwon", regionLabel: "강원·평창", type: "winter", location: "오대천 일대", experience: "얼음낚시+황금송어 맨손잡기+눈썰매+스노우래프팅. 해발 700m 진짜 겨울.", price: "낚시 12,000원대", tags: ["원스톱", "맨손잡기"] },
+  { name: "홍천강 꽁꽁축제", icon: "❄️", region: "gangwon", regionLabel: "강원·홍천", type: "winter", location: "홍천강", experience: "인삼송어 얼음낚시·맨손 송어잡기·얼음썰매·겨울 민속놀이. 가족 친화.", price: "낚시 1만원대", tags: ["인삼송어", "민속놀이"] },
+  { name: "인제 빙어축제", icon: "❄️", region: "gangwon", regionLabel: "강원·인제", type: "winter", location: "소양호 빙판", experience: "빙어낚시 + 얼음스포츠. 매년 1월. 가족 단위 인기.", price: "낚시 1만원대", tags: ["빙어", "1월"] },
+  { name: "양주 눈꽃축제 눈썰매장", icon: "❄️", region: "metro", regionLabel: "경기·양주", type: "winter", location: "양주", experience: "경기권 최장 200m 슬로프. 4인 동시 탑승 가능 + 유아용 눈썰매장 + 얼음썰매.", price: "1만원대", tags: ["200m", "유아 슬로프"] },
+  { name: "파주 초리골 눈썰매장", icon: "❄️", region: "metro", regionLabel: "경기·파주", type: "winter", location: "파주시 법원읍", experience: "100m 메인 슬로프, 튜브 자동 컨베이어 → 무한 반복. 속도감.", price: "1만원대", tags: ["자동 컨베이어"] },
+  { name: "고양 원마운트 스노우파크", icon: "❄️", region: "metro", regionLabel: "경기·고양", type: "winter", location: "킨텍스 인근", experience: "경기 최대 실내 눈썰매·얼음 테마파크. 사계절 운영.", price: "1.5~2만원대", indoor: true, tags: ["실내", "사계절"] },
+  { name: "서울랜드 스노우펀랜드", icon: "❄️", region: "metro", regionLabel: "경기·과천", type: "winter", location: "서울대공원 옆", experience: "서울 30분. 눈썰매 + 빙어낚시 뜰채 체험(6,000원). 초보·유아 OK.", price: "입장 + 체험 1만원대", tags: ["빙어 뜰채", "서울 근접"] },
+
+  // ===== 🎪 공연·인형극 =====
+  { name: "종로 아이들극장", icon: "🎪", region: "metro", regionLabel: "서울·종로", type: "show", location: "종로구 성균관로", experience: "어린이 전용 상설 극장. 인형극·오브제극 페스티벌(키우피우) 등. 36개월~ 가능 작품 다수.", price: "1~2만원대", indoor: true, tags: ["어린이 전용", "오브제극"] },
+  { name: "국립아시아문화전당 어린이문화원", icon: "🎪", region: "other", regionLabel: "광주·동구", type: "show", location: "광주 동구", experience: "국악 뮤지컬 <호랑이 가>, 인형 뮤지컬 <도서관 생쥐>, 인형극 <용감한 탄티>.", price: "5,000~15,000", indoor: true, tags: ["국악", "인형극", "광주"] },
+  { name: "용인어린이상상의숲", icon: "🎪", region: "metro", regionLabel: "경기·용인", type: "show", location: "용인시 처인구 동백", experience: "어린이 관객 직접 참여형 뮤지컬. 가족 뮤지컬 시즌제.", price: "1~2만원대", indoor: true, tags: ["참여형", "가족 뮤지컬"] },
+  { name: "대전어린이회관", icon: "🎪", region: "other", regionLabel: "대전", type: "show", location: "대전", experience: "매달 주제 변경되는 어린이 뮤지컬 상설 상연. 상상력 발달 콘텐츠.", price: "1만원대", indoor: true, tags: ["월간 변경", "상설"] },
+  { name: "인터파크 / 예스24 어린이 뮤지컬 카테고리", icon: "🎪", region: "metro", regionLabel: "전국", type: "show", location: "전국 공연장", experience: "캐릭터 뮤지컬·인형극 통합 예매. '뽀로로'·'폴리'·'타요' 시즌 공연 다수.", price: "2~5만원대", indoor: true, tags: ["캐릭터", "시즌제", "전국 투어"] },
+  { name: "예술의전당 어린이 가족 페스티벌", icon: "🎪", region: "metro", regionLabel: "서울·서초", type: "show", location: "서초구", experience: "어린이날 시즌 가족 뮤지컬·인형극 집중 편성. 달샤베트 등.", price: "2~5만원대", indoor: true, tags: ["어린이날", "프리미엄"] },
+];
+
+// ===== 도시 → 좌표 매핑 (location/regionLabel string에서 매칭) =====
+const CITY_COORDS = {
+  // 서울
+  "강남": [37.5172, 127.0473], "강동": [37.5301, 127.1238], "강북": [37.6396, 127.0257],
+  "강서": [37.5509, 126.8495], "관악": [37.4784, 126.9516], "광진": [37.5384, 127.0822],
+  "구로": [37.4954, 126.8874], "금천": [37.4519, 126.9020], "노원": [37.6542, 127.0568],
+  "도봉": [37.6688, 127.0471], "동대문": [37.5744, 127.0395], "동작": [37.5124, 126.9393],
+  "마포": [37.5663, 126.9013], "서대문": [37.5791, 126.9368], "서초": [37.4836, 127.0327],
+  "성동": [37.5634, 127.0369], "성북": [37.5894, 127.0167], "송파": [37.5145, 127.1059],
+  "양천": [37.5170, 126.8666], "영등포": [37.5263, 126.8962], "용산": [37.5326, 126.9905],
+  "은평": [37.6027, 126.9291], "종로": [37.5729, 126.9794], "중구": [37.5641, 126.9979],
+  "중랑": [37.6066, 127.0926], "잠실": [37.5133, 127.1028], "여의도": [37.5219, 126.9244],
+  "옥수": [37.5402, 127.0190], "한남": [37.5380, 127.0023], "북촌": [37.5825, 126.9831],
+  "성수": [37.5447, 127.0557], "압구정": [37.5269, 127.0287],
+  // 경기/인천
+  "수원": [37.2636, 127.0286], "용인": [37.2411, 127.1776], "성남": [37.4200, 127.1267],
+  "고양": [37.6584, 126.8320], "일산": [37.6584, 126.7700], "부천": [37.5034, 126.7660],
+  "안산": [37.3219, 126.8309], "안양": [37.3943, 126.9568], "남양주": [37.6360, 127.2165],
+  "화성": [37.1995, 126.8312], "평택": [36.9920, 127.1130], "의정부": [37.7381, 127.0337],
+  "시흥": [37.3800, 126.8000], "파주": [37.7600, 126.7800], "광명": [37.4781, 126.8644],
+  "김포": [37.6155, 126.7158], "광주": [37.4292, 127.2550], "이천": [37.2722, 127.4350],
+  "양주": [37.7853, 127.0450], "안성": [37.0080, 127.2797], "구리": [37.5940, 127.1297],
+  "포천": [37.8949, 127.2003], "오산": [37.1499, 127.0772], "하남": [37.5392, 127.2148],
+  "여주": [37.2984, 127.6370], "양평": [37.4912, 127.4877], "동두천": [37.9036, 127.0606],
+  "연천": [38.0966, 127.0747], "가평": [37.8315, 127.5093], "과천": [37.4291, 126.9876],
+  "의왕": [37.3447, 126.9683], "군포": [37.3617, 126.9352], "백암": [37.1450, 127.2660],
+  "기흥": [37.2756, 127.1156], "처인": [37.2349, 127.2010], "분당": [37.3517, 127.1086],
+  "판교": [37.3947, 127.1112], "동백": [37.2868, 127.1417],
+  "인천": [37.4563, 126.7052], "월미": [37.4731, 126.5969], "강화": [37.7466, 126.4880],
+  "송도": [37.3838, 126.6438], "을왕": [37.4495, 126.3759], "계양": [37.5378, 126.7376],
+  "남동": [37.4503, 126.7311], "연수": [37.4106, 126.6788],
+  // 강원
+  "강원": [37.5500, 128.5000], "춘천": [37.8813, 127.7298], "원주": [37.3422, 127.9202],
+  "강릉": [37.7519, 128.8761], "동해": [37.5246, 129.1142], "삼척": [37.4500, 129.1657],
+  "속초": [38.2070, 128.5918], "태백": [37.1641, 128.9856], "평창": [37.3704, 128.3900],
+  "정선": [37.3804, 128.6610], "홍천": [37.6973, 127.8884], "화천": [38.1062, 127.7080],
+  "인제": [38.0696, 128.1707], "양양": [38.0750, 128.6190], "고성": [38.3806, 128.4675],
+  "철원": [38.1466, 127.3127], "사천면": [37.7794, 128.8639], "사북면": [37.9669, 127.6710],
+  // 충청
+  "대전": [36.3504, 127.3845], "세종": [36.4801, 127.2890],
+  "충북": [36.6357, 127.4910], "청주": [36.6424, 127.4890], "충주": [36.9911, 127.9259],
+  "단양": [36.9846, 128.3650], "제천": [37.1326, 128.1910],
+  "충남": [36.6588, 126.6728], "공주": [36.4467, 127.1190], "당진": [36.8893, 126.6286],
+  "보령": [36.3334, 126.6126], "서산": [36.7848, 126.4503], "아산": [36.7898, 127.0021],
+  "천안": [36.8151, 127.1139], "태안": [36.7456, 126.2980], "서천": [36.0808, 126.6914],
+  // 전라
+  "전북": [35.7175, 127.1530], "전주": [35.8242, 127.1480], "익산": [35.9483, 126.9576],
+  "군산": [35.9676, 126.7370], "임실": [35.6177, 127.2887], "남원": [35.4163, 127.3905],
+  "전남": [34.8161, 126.4630], "목포": [34.8118, 126.3922], "여수": [34.7604, 127.6622],
+  "순천": [34.9506, 127.4878], "보성": [34.7714, 127.0801], "해남": [34.5734, 126.5990],
+  "광주": [35.1595, 126.8526],
+  // 경상
+  "부산": [35.1796, 129.0756], "기장": [35.2452, 129.2233], "해운대": [35.1631, 129.1635],
+  "서구": [35.0985, 128.9716], "동구": [35.1295, 129.0440], "수영": [35.1454, 129.1131],
+  "사하": [35.1041, 128.9748],
+  "대구": [35.8714, 128.6014], "울산": [35.5384, 129.3114],
+  "경북": [36.5760, 128.5056], "경주": [35.8562, 129.2247], "예천": [36.6577, 128.4537],
+  "칠곡": [35.9956, 128.4017], "문경": [36.5862, 128.1869], "안동": [36.5684, 128.7295],
+  "경남": [35.4606, 128.2132], "김해": [35.2285, 128.8893], "통영": [34.8544, 128.4332],
+  "양산": [35.3350, 129.0378], "합천": [35.5667, 128.1660], "거제": [34.8806, 128.6212],
+  "남해": [34.8378, 127.8927],
+  // 제주
+  "제주": [33.4996, 126.5312], "서귀포": [33.2541, 126.5601], "애월": [33.4640, 126.3300],
+  "성산": [33.4583, 126.9404], "한경": [33.3489, 126.1850], "표선": [33.3245, 126.8341],
+  "중문": [33.2492, 126.4117],
+};
+
+// 좌표 매핑: location → regionLabel → region 기본값 순으로 매칭. 매칭되면 살짝 jitter로 마커 겹침 방지.
+const REGION_FALLBACK = {
+  metro: [37.45, 127.0],
+  gangwon: [37.7, 128.5],
+  jeju: [33.4, 126.5],
+  other: [36.0, 127.7],
+};
+
+function getCoord(d) {
+  const hay = (d.location || "") + " " + (d.regionLabel || "");
+  let base = null;
+  for (const city in CITY_COORDS) {
+    if (hay.includes(city)) { base = CITY_COORDS[city]; break; }
+  }
+  if (!base) base = REGION_FALLBACK[d.region] || [36.5, 127.5];
+  // 같은 도시 겹침 방지용 약한 jitter (name 해시 기반 deterministic)
+  let h = 0;
+  for (const c of d.name) h = (h * 31 + c.charCodeAt(0)) | 0;
+  const jx = ((h & 0xff) / 255 - 0.5) * 0.06;
+  const jy = (((h >> 8) & 0xff) / 255 - 0.5) * 0.06;
+  return [base[0] + jy, base[1] + jx];
+}
+
+// ===== 시즌 자동 매핑 =====
+// 1 = 1월 ... 12 = 12월. 데이터에 d.months 명시되면 그걸 사용.
+const DEFAULT_MONTHS_BY_TYPE = {
+  winter: [12, 1, 2],
+  harvest: [11, 12, 1, 2, 3, 4, 5], // 딸기 위주
+  insect: [4, 5, 6, 7, 8, 9, 10],
+  mudflat: [4, 5, 6, 7, 8, 9, 10],
+  village: [4, 5, 6, 7, 8, 9, 10],
+  camping: [4, 5, 6, 7, 8, 9, 10],
+  forest: [4, 5, 6, 7, 8, 9, 10, 11],
+  cruise: [4, 5, 6, 7, 8, 9, 10, 11],
+  "outdoor-farm": [3, 4, 5, 6, 9, 10, 11],
+  "indoor-zoo": [1,2,3,4,5,6,7,8,9,10,11,12],
+  nature: [3, 4, 5, 6, 7, 8, 9, 10, 11],
+};
+
+function getMonths(d) {
+  if (d.months) return d.months;
+  // 키워드 기반 보정
+  const text = (d.experience + " " + (d.tags || []).join(" ")).toLowerCase();
+  if (text.includes("벚꽃")) return [3, 4];
+  if (text.includes("튤립")) return [4, 5];
+  if (text.includes("장미")) return [5, 6];
+  if (text.includes("핑크뮬리")) return [9, 10];
+  if (text.includes("청보리")) return [4, 5];
+  if (text.includes("해바라기")) return [7, 8];
+  if (text.includes("단풍")) return [10, 11];
+  if (text.includes("워터파크") || text.includes("야외수영장") || text.includes("파도풀")) {
+    return d.indoor ? [1,2,3,4,5,6,7,8,9,10,11,12] : [6, 7, 8];
+  }
+  if (text.includes("어린이날")) return [4, 5];
+  if (text.includes("연등")) return [4, 5];
+  if (d.type === "outdoor-farm") return [3, 4, 5, 6, 9, 10, 11];
+  if (DEFAULT_MONTHS_BY_TYPE[d.type]) return DEFAULT_MONTHS_BY_TYPE[d.type];
+  if (d.indoor) return [1,2,3,4,5,6,7,8,9,10,11,12]; // 실내는 사계절
+  return [3, 4, 5, 6, 7, 8, 9, 10, 11]; // 기본 봄~가을
+}
+
+const MONTH_LABELS = {
+  1: "겨울", 2: "겨울", 3: "봄", 4: "봄", 5: "봄",
+  6: "초여름", 7: "여름", 8: "여름", 9: "초가을",
+  10: "가을", 11: "늦가을", 12: "겨울"
+};
+
+let state = {
+  region: "all",
+  type: "all",
+  query: "",
+  options: new Set(),
+  view: "list",
+  month: null, // 캘린더에서 선택된 월
+};
+
+const grid = document.getElementById("grid");
+const countEl = document.getElementById("count");
+let mapInstance = null;
+let mapMarkersLayer = null;
+
+function filterData() {
+  const q = state.query.trim().toLowerCase();
+  return DATA.filter(d => {
+    if (state.region !== "all" && d.region !== state.region) return false;
+    if (state.type !== "all" && d.type !== state.type) return false;
+    if (state.options.has("new") && !d.isNew) return false;
+    if (state.options.has("indoor") && !d.indoor) return false;
+    if (state.options.has("free") && !d.free) return false;
+    if (state.month && !getMonths(d).includes(state.month)) return false;
+    if (q) {
+      const hay = (d.name + " " + d.location + " " + d.experience + " " + (d.tags || []).join(" ")).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function cardHTML(d) {
+  return `
+    <div class="card${d.isNew ? " is-new" : ""}">
+      <div class="card-head">
+        <h3 class="card-name">
+          <span class="category-icon">${d.icon}</span>
+          <span>${d.name}</span>
+          ${d.isNew ? `<span class="new-badge" title="${d.newDate || "최근 3개월 이내"}">신상</span>` : ""}
+          ${d.free ? '<span class="free-badge">무료</span>' : ""}
+          ${d.indoor ? '<span class="indoor-badge">실내</span>' : ""}
+        </h3>
+        <span class="region-tag">${d.regionLabel}</span>
+      </div>
+      <div class="location">${d.location}</div>
+      <div class="experience">
+        <span class="experience-label">체험${d.isNew && d.newDate ? ` · ${d.newDate} 오픈` : ""}</span>
+        ${d.experience}
+      </div>
+      <div class="price">${d.price}</div>
+      ${d.tags && d.tags.length ? `<div class="tag-row">${d.tags.map(t => `<span class="small-tag">${t}</span>`).join("")}</div>` : ""}
+    </div>
+  `;
+}
+
+function render() {
+  const filtered = filterData();
+  countEl.textContent = `${filtered.length} / ${DATA.length}곳`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty">조건에 맞는 장소가 없어요. 필터를 풀어보세요.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(cardHTML).join("");
+
+  if (state.view === "map") renderMap(filtered);
+  if (state.view === "calendar") renderCalendar(filtered);
+}
+
+// ===== 지도 =====
+function ensureMap() {
+  if (mapInstance) return;
+  mapInstance = L.map("map", { scrollWheelZoom: false }).setView([36.5, 127.8], 7);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(mapInstance);
+  mapMarkersLayer = L.layerGroup().addTo(mapInstance);
+}
+
+function renderMap(filtered) {
+  ensureMap();
+  setTimeout(() => mapInstance.invalidateSize(), 50);
+  mapMarkersLayer.clearLayers();
+  filtered.forEach(d => {
+    const [lat, lng] = getCoord(d);
+    const marker = L.marker([lat, lng]).addTo(mapMarkersLayer);
+    marker.bindPopup(`
+      <div class="popup-name">${d.icon} ${d.name}${d.isNew ? " ✨" : ""}</div>
+      <div class="popup-meta">${d.regionLabel} · ${d.price}</div>
+      <div class="popup-desc">${d.experience}</div>
+    `);
+  });
+  if (filtered.length > 0) {
+    const group = L.featureGroup(mapMarkersLayer.getLayers());
+    try { mapInstance.fitBounds(group.getBounds().pad(0.1)); } catch (e) {}
+  }
+}
+
+// ===== 캘린더 =====
+function renderCalendar(filtered) {
+  const monthGrid = document.getElementById("monthGrid");
+  const calendarGrid = document.getElementById("calendarGrid");
+
+  // 월별 카운트 (현재 필터 상태에서 month 제외하고 다른 필터만 적용)
+  const monthSaved = state.month;
+  state.month = null;
+  const baseFiltered = filterData();
+  state.month = monthSaved;
+
+  const counts = {};
+  for (let m = 1; m <= 12; m++) counts[m] = 0;
+  baseFiltered.forEach(d => {
+    getMonths(d).forEach(m => { counts[m]++; });
+  });
+
+  monthGrid.innerHTML = "";
+  for (let m = 1; m <= 12; m++) {
+    const card = document.createElement("div");
+    card.className = "month-card" + (state.month === m ? " active" : "");
+    card.dataset.month = m;
+    card.innerHTML = `
+      <div class="month-num">${m}월</div>
+      <div class="month-label">${MONTH_LABELS[m]}</div>
+      <div class="season-pill">${counts[m]}곳</div>
+    `;
+    card.addEventListener("click", () => {
+      state.month = state.month === m ? null : m;
+      render();
+    });
+    monthGrid.appendChild(card);
+  }
+
+  calendarGrid.innerHTML = filtered.map(cardHTML).join("");
+  if (filtered.length === 0) {
+    calendarGrid.innerHTML = '<div class="empty">선택한 달에 맞는 장소가 없어요. 다른 월을 눌러보세요.</div>';
+  }
+}
+
+// ===== 탭 전환 =====
+document.querySelectorAll(".view-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    state.view = tab.dataset.view;
+    document.getElementById("view-" + state.view).classList.add("active");
+    if (state.view !== "calendar") state.month = null;
+    render();
+  });
+});
+
+document.getElementById("regionFilter").addEventListener("click", e => {
+  if (!e.target.classList.contains("chip")) return;
+  document.querySelectorAll("#regionFilter .chip").forEach(c => c.classList.remove("active"));
+  e.target.classList.add("active");
+  state.region = e.target.dataset.region;
+  render();
+});
+
+document.getElementById("typeFilter").addEventListener("click", e => {
+  if (!e.target.classList.contains("chip")) return;
+  document.querySelectorAll("#typeFilter .chip").forEach(c => c.classList.remove("active"));
+  e.target.classList.add("active");
+  state.type = e.target.dataset.type;
+  render();
+});
+
+document.getElementById("optionFilter").addEventListener("click", e => {
+  if (!e.target.classList.contains("chip")) return;
+  const opt = e.target.dataset.option;
+  if (state.options.has(opt)) {
+    state.options.delete(opt);
+    e.target.classList.remove("active");
+  } else {
+    state.options.add(opt);
+    e.target.classList.add("active");
+  }
+  render();
+});
+
+document.getElementById("search").addEventListener("input", e => {
+  state.query = e.target.value;
+  render();
+});
+
+const themeBtn = document.getElementById("themeToggle");
+const saved = localStorage.getItem("theme-experience");
+if (saved === "dark") {
+  document.documentElement.setAttribute("data-theme", "dark");
+  themeBtn.textContent = "☀️ 라이트";
+}
+themeBtn.addEventListener("click", () => {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  if (isDark) {
+    document.documentElement.removeAttribute("data-theme");
+    themeBtn.textContent = "🌙 다크";
+    localStorage.setItem("theme-experience", "light");
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    themeBtn.textContent = "☀️ 라이트";
+    localStorage.setItem("theme-experience", "dark");
+  }
+});
+
+render();
+</script>
+</body>
+</html>
