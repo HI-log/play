@@ -2142,7 +2142,7 @@ async function runRecommend(lat, lng, cityName) {
   // 가까운 곳과 다른 권역 우선
   const otherRegionFar = farPool.filter(c => !closeRegions.has(c.region));
   const farSource = otherRegionFar.length >= 2 ? otherRegionFar : farPool;
-  const far = pickWithMode(farSource, 2, mode, closeNames);
+  const far = pickWithMode(farSource, 3, mode, closeNames);
 
   // 야외 모드인데 실내가 섞여 들어왔는지 안내용 카운트
   const closeOutdoorCnt = close.filter(c => !c.indoor).length;
