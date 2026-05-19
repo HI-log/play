@@ -498,6 +498,168 @@
     .month-grid { grid-template-columns: repeat(2, 1fr); }
     #map { height: 420px; }
   }
+
+  /* 추천 탭 */
+  .recommend-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .recommend-intro {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 48px 32px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .recommend-emoji {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .recommend-title {
+    font-size: 26px;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+  .recommend-lede {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 28px;
+    line-height: 1.6;
+  }
+  .recommend-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 36px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+  }
+  .recommend-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+  }
+  .recommend-btn:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .recommend-fallback {
+    margin-top: 28px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .recommend-fallback select {
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  /* 결과 헤더 */
+  .weather-card {
+    background: linear-gradient(135deg, var(--accent-soft), transparent);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .weather-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .weather-icon {
+    font-size: 40px;
+    line-height: 1;
+  }
+  .weather-info { line-height: 1.4; }
+  .weather-city {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .weather-detail {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .weather-mode {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .weather-mode.indoor { color: #6366f1; }
+  .weather-mode.outdoor { color: var(--accent); }
+  .recommend-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .recommend-actions button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .reco-section {
+    margin-bottom: 32px;
+  }
+  .reco-section-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .reco-section-sub {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .dist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .dist-badge.far { background: #f97316; }
+
+  .recommend-error {
+    background: var(--bad-soft);
+    color: var(--bad);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
 </style>
 </head>
 <body>
@@ -582,6 +744,7 @@
   <button class="view-tab active" data-view="list">📋 리스트</button>
   <button class="view-tab" data-view="map">🗺️ 지도</button>
   <button class="view-tab" data-view="calendar">📅 시즌 캘린더</button>
+  <button class="view-tab" data-view="recommend">🎯 오늘 추천</button>
 </div>
 
 <div class="view-panel active" id="view-list">
@@ -597,6 +760,37 @@
     <p class="calendar-hint">월을 클릭하면 그 시즌에 좋은 장소만 리스트에 필터링돼요. 다시 누르면 해제.</p>
     <div class="month-grid" id="monthGrid"></div>
     <div class="grid" id="calendarGrid"></div>
+  </div>
+</div>
+
+<div class="view-panel" id="view-recommend">
+  <div class="recommend-wrap" id="recommendWrap">
+    <div class="recommend-intro" id="recommendIntro">
+      <div class="recommend-emoji">🎯</div>
+      <h2 class="recommend-title">오늘 어디 갈까요?</h2>
+      <p class="recommend-lede">현재 위치 + 실시간 날씨를 보고 가까운 곳 3개 · 먼 곳 2개를 추천해요.<br>위치 권한이 필요해요. 거부해도 도시를 직접 고를 수 있습니다.</p>
+      <button class="recommend-btn" id="recommendStart">📍 추천 받기</button>
+      <div class="recommend-fallback">
+        <p>또는 도시 선택:</p>
+        <select id="cityPicker">
+          <option value="">— 도시 선택 —</option>
+          <option value="37.5665,126.9780,서울">서울</option>
+          <option value="37.4563,126.7052,인천">인천</option>
+          <option value="37.2636,127.0286,수원">수원</option>
+          <option value="37.2411,127.1776,용인">용인</option>
+          <option value="35.1796,129.0756,부산">부산</option>
+          <option value="35.8714,128.6014,대구">대구</option>
+          <option value="35.1595,126.8526,광주">광주</option>
+          <option value="36.3504,127.3845,대전">대전</option>
+          <option value="35.5384,129.3114,울산">울산</option>
+          <option value="37.8813,127.7298,춘천">춘천</option>
+          <option value="37.7519,128.8761,강릉">강릉</option>
+          <option value="35.8242,127.1480,전주">전주</option>
+          <option value="33.4996,126.5312,제주">제주</option>
+        </select>
+      </div>
+    </div>
+    <div class="recommend-result" id="recommendResult" style="display: none;"></div>
   </div>
 </div>
 
@@ -1168,6 +1362,212 @@ document.querySelectorAll(".view-tab").forEach(tab => {
     if (state.view !== "calendar") state.month = null;
     render();
   });
+});
+
+// ===== 🎯 오늘 추천 =====
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const toRad = (x) => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// WMO weather code 분류
+function weatherInfo(code) {
+  if (code === 0) return { icon: "☀️", label: "맑음", bad: false };
+  if (code >= 1 && code <= 3) return { icon: "⛅", label: "구름", bad: false };
+  if (code === 45 || code === 48) return { icon: "🌫️", label: "안개", bad: false };
+  if (code >= 51 && code <= 67) return { icon: "🌧️", label: "비", bad: true };
+  if (code >= 71 && code <= 77) return { icon: "🌨️", label: "눈", bad: true };
+  if (code >= 80 && code <= 82) return { icon: "🌦️", label: "소나기", bad: true };
+  if (code >= 95) return { icon: "⛈️", label: "뇌우", bad: true };
+  return { icon: "🌤️", label: "기타", bad: false };
+}
+
+async function fetchWeather(lat, lng) {
+  const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,precipitation,weather_code&timezone=Asia%2FSeoul`;
+  const aUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=pm2_5`;
+  const [wRes, aRes] = await Promise.all([fetch(wUrl), fetch(aUrl).catch(() => null)]);
+  if (!wRes.ok) throw new Error("날씨 API 응답 오류");
+  const w = await wRes.json();
+  let pm25 = null;
+  if (aRes && aRes.ok) {
+    const a = await aRes.json();
+    pm25 = a?.current?.pm2_5 ?? null;
+  }
+  return {
+    temp: w.current.temperature_2m,
+    precip: w.current.precipitation,
+    code: w.current.weather_code,
+    pm25,
+  };
+}
+
+function decideIndoorMode(weather) {
+  const wi = weatherInfo(weather.code);
+  if (wi.bad) return { indoor: true, reason: `오늘 ${wi.label}이라 실내 추천` };
+  if (weather.temp <= 0) return { indoor: true, reason: `현재 ${weather.temp.toFixed(1)}℃, 너무 추워서 실내 추천` };
+  if (weather.temp >= 32) return { indoor: true, reason: `현재 ${weather.temp.toFixed(1)}℃, 너무 더워서 실내·물놀이 추천` };
+  if (weather.pm25 !== null && weather.pm25 >= 50) return { indoor: true, reason: `미세먼지 PM2.5 ${weather.pm25.toFixed(0)} (나쁨), 실내 추천` };
+  return { indoor: false, reason: `${wi.label}·${weather.temp.toFixed(1)}℃ 야외 활동 좋아요` };
+}
+
+function pickDiverse(arr, n, seen = new Set()) {
+  const result = [];
+  const usedTypes = new Set();
+  // 1차: type 겹치지 않게
+  for (const d of arr) {
+    if (result.length >= n) break;
+    if (seen.has(d.name)) continue;
+    if (usedTypes.has(d.type)) continue;
+    result.push(d);
+    usedTypes.add(d.type);
+  }
+  // 2차: 부족하면 type 중복 허용
+  if (result.length < n) {
+    for (const d of arr) {
+      if (result.length >= n) break;
+      if (seen.has(d.name)) continue;
+      if (result.includes(d)) continue;
+      result.push(d);
+    }
+  }
+  return result;
+}
+
+async function runRecommend(lat, lng, cityName) {
+  const result = document.getElementById("recommendResult");
+  const intro = document.getElementById("recommendIntro");
+  intro.style.display = "none";
+  result.style.display = "block";
+  result.innerHTML = '<div class="recommend-error" style="background:var(--accent-soft);color:var(--accent);">날씨 정보를 받아오는 중…</div>';
+
+  let weather, mode;
+  try {
+    weather = await fetchWeather(lat, lng);
+    mode = decideIndoorMode(weather);
+  } catch (e) {
+    result.innerHTML = `<div class="recommend-error">날씨 정보를 가져오지 못했어요: ${e.message}<br>잠시 후 다시 시도해주세요.</div>`;
+    return;
+  }
+
+  // 후보 필터: 시즌 + 실내/실외 조건
+  const m = new Date().getMonth() + 1;
+  let candidates = DATA.filter(d => {
+    if (!getMonths(d).includes(m)) return false;
+    if (mode.indoor && !d.indoor) return false;
+    return true;
+  });
+
+  // 거리 계산
+  candidates = candidates.map(d => {
+    const [dLat, dLng] = getCoord(d);
+    return { ...d, distKm: haversineKm(lat, lng, dLat, dLng) };
+  });
+  candidates.sort((a, b) => a.distKm - b.distKm);
+
+  // 가까운 3 (다양성)
+  const close = pickDiverse(candidates.slice(0, 30), 3);
+  const closeNames = new Set(close.map(c => c.name));
+
+  // 먼 곳 2: 80km 이상에서 다양성 (region 다른 것 우선)
+  const farPool = candidates.filter(c => c.distKm > 80 && !closeNames.has(c.name));
+  const closeRegions = new Set(close.map(c => c.region));
+  // 가까운 곳과 다른 권역 우선
+  const otherRegionFar = farPool.filter(c => !closeRegions.has(c.region));
+  const farSource = otherRegionFar.length >= 2 ? otherRegionFar : farPool;
+  const far = pickDiverse(farSource, 2, closeNames);
+
+  const wi = weatherInfo(weather.code);
+
+  result.innerHTML = `
+    <div class="weather-card">
+      <div class="weather-main">
+        <div class="weather-icon">${wi.icon}</div>
+        <div class="weather-info">
+          <div class="weather-city">📍 ${cityName}</div>
+          <div class="weather-detail">${wi.label} · ${weather.temp.toFixed(1)}℃${weather.pm25 !== null ? ` · PM2.5 ${weather.pm25.toFixed(0)}` : ""}</div>
+        </div>
+      </div>
+      <div class="weather-mode ${mode.indoor ? 'indoor' : 'outdoor'}">${mode.indoor ? '🏠' : '🌳'} ${mode.reason}</div>
+      <div class="recommend-actions">
+        <button id="recommendReset">처음으로</button>
+      </div>
+    </div>
+
+    <div class="reco-section">
+      <h3 class="reco-section-title">🚗 가까운 곳 <span class="reco-section-sub">(차로 부담 적게)</span></h3>
+      ${close.length ? `<div class="grid">${close.map(d => recoCardHTML(d, false)).join("")}</div>` : '<div class="empty">조건에 맞는 가까운 곳을 못 찾았어요.</div>'}
+    </div>
+
+    <div class="reco-section">
+      <h3 class="reco-section-title">🛣️ 멀리 나들이 <span class="reco-section-sub">(주말 코스, 80km+)</span></h3>
+      ${far.length ? `<div class="grid">${far.map(d => recoCardHTML(d, true)).join("")}</div>` : '<div class="empty">조건에 맞는 먼 곳을 못 찾았어요.</div>'}
+    </div>
+  `;
+
+  document.getElementById("recommendReset").addEventListener("click", () => {
+    intro.style.display = "block";
+    result.style.display = "none";
+    result.innerHTML = "";
+  });
+}
+
+function recoCardHTML(d, isFar) {
+  const distLabel = d.distKm < 1 ? `${(d.distKm * 1000).toFixed(0)}m` : `${d.distKm.toFixed(1)}km`;
+  return `
+    <div class="card${d.isNew ? " is-new" : ""}">
+      <div class="card-head">
+        <h3 class="card-name">
+          <span class="category-icon">${d.icon}</span>
+          <span>${d.name}</span>
+          ${d.isNew ? '<span class="new-badge">신상</span>' : ""}
+          ${d.free ? '<span class="free-badge">무료</span>' : ""}
+          ${d.indoor ? '<span class="indoor-badge">실내</span>' : ""}
+        </h3>
+        <span class="dist-badge ${isFar ? 'far' : ''}">📍 ${distLabel}</span>
+      </div>
+      <div class="location">${d.location}</div>
+      <div class="experience">
+        <span class="experience-label">체험</span>
+        ${d.experience}
+      </div>
+      <div class="price">${d.price}</div>
+      ${d.tags && d.tags.length ? `<div class="tag-row">${d.tags.map(t => `<span class="small-tag">${t}</span>`).join("")}</div>` : ""}
+    </div>
+  `;
+}
+
+document.getElementById("recommendStart").addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    alert("이 브라우저는 위치 서비스를 지원하지 않아요. 도시를 선택해주세요.");
+    return;
+  }
+  const btn = document.getElementById("recommendStart");
+  btn.disabled = true;
+  btn.textContent = "위치 확인 중…";
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      runRecommend(pos.coords.latitude, pos.coords.longitude, "현재 위치");
+      btn.disabled = false;
+      btn.textContent = "📍 추천 받기";
+    },
+    (err) => {
+      btn.disabled = false;
+      btn.textContent = "📍 추천 받기";
+      alert("위치 권한이 거부됐어요. 아래에서 도시를 선택해주세요.");
+    },
+    { timeout: 10000, maximumAge: 600000 }
+  );
+});
+
+document.getElementById("cityPicker").addEventListener("change", (e) => {
+  if (!e.target.value) return;
+  const [lat, lng, name] = e.target.value.split(",");
+  runRecommend(parseFloat(lat), parseFloat(lng), name);
 });
 
 document.getElementById("regionFilter").addEventListener("click", e => {
