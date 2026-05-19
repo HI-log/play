@@ -505,7 +505,7 @@ document.getElementById("search").addEventListener("input", e => {
 });
 
 const themeBtn = document.getElementById("themeToggle");
-const saved = localStorage.getItem("theme");
+const saved = localStorage.getItem("theme-hilog");
 if (saved === "dark") {
   document.documentElement.setAttribute("data-theme", "dark");
   themeBtn.textContent = "☀️ 라이트";
@@ -515,11 +515,11 @@ themeBtn.addEventListener("click", () => {
   if (isDark) {
     document.documentElement.removeAttribute("data-theme");
     themeBtn.textContent = "🌙 다크";
-    localStorage.setItem("theme", "light");
+    localStorage.setItem("theme-hilog", "light");
   } else {
     document.documentElement.setAttribute("data-theme", "dark");
     themeBtn.textContent = "☀️ 라이트";
-    localStorage.setItem("theme", "dark");
+    localStorage.setItem("theme-hilog", "dark");
   }
 });
 
