@@ -411,6 +411,127 @@
     color: var(--muted);
     font-size: 13.5px;
   }
+
+  /* 위치 picker 모달 */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 720px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    padding: 4px 8px;
+  }
+  .modal-hint {
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-hint.picked { color: var(--accent); font-weight: 600; }
+  #pickerMap {
+    flex: 1;
+    min-height: 360px;
+  }
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .modal-footer button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .modal-footer button.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .modal-footer button.primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* 반경 select */
+  .radius-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 6px 4px 14px;
+  }
+  .radius-wrap select {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 999px;
+  }
+  .radius-wrap select:disabled { color: var(--muted); cursor: not-allowed; }
+  .radius-wrap .radius-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .picker-link {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .picker-link:hover { border-color: var(--accent); color: var(--accent); }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
     70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
@@ -914,6 +1035,22 @@
       <span class="chip" data-option="age-2to4">👶 2~4세 OK</span>
     </div>
   </div>
+  <div class="control-row">
+    <span class="control-label">반경</span>
+    <div class="radius-wrap">
+      <span class="radius-label">📍</span>
+      <select id="radiusSelect">
+        <option value="">제한 없음</option>
+        <option value="5">5km 이내</option>
+        <option value="10">10km 이내</option>
+        <option value="30">30km 이내</option>
+        <option value="50">50km 이내</option>
+        <option value="100">100km 이내</option>
+      </select>
+    </div>
+    <button class="picker-link" id="openPickerBtn">🗺️ 지도에서 내 위치 찍기</button>
+    <span id="radiusHint" style="font-size:12px;color:var(--muted);"></span>
+  </div>
 </div>
 
 <div class="view-tabs">
@@ -956,7 +1093,9 @@
       <p class="recommend-lede">현재 위치 + 실시간 날씨를 보고 가까운 곳 3개 · 먼 곳 2개를 추천해요.<br>위치 권한이 필요해요. 거부해도 도시를 직접 고를 수 있습니다.</p>
       <button class="recommend-btn" id="recommendStart">📍 추천 받기</button>
       <div class="recommend-fallback">
-        <p>또는 도시 선택:</p>
+        <p>또는 위치를 직접 지정:</p>
+        <button class="picker-link" id="openPickerBtnIntro" style="margin-bottom:10px;">🗺️ 지도에서 찍기</button>
+        <p style="margin-top:6px;">도시 선택:</p>
         <select id="cityPicker">
           <option value="">— 도시 선택 —</option>
           <option value="37.5665,126.9780,서울">서울</option>
@@ -1046,6 +1185,21 @@
     </ul>
   </details>
 </footer>
+
+<div class="modal-backdrop" id="locationModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>🗺️ 지도에서 내 위치 찍기</h3>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="modal-hint" id="modalHint">지도를 클릭해서 내 위치를 표시하세요.</div>
+    <div id="pickerMap"></div>
+    <div class="modal-footer">
+      <button id="modalCancel">취소</button>
+      <button class="primary" id="modalConfirm" disabled>이 위치로 설정</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const DATA = [
@@ -1409,6 +1563,7 @@ let state = {
   month: null, // 캘린더에서 선택된 월
   sortMode: "default", // default | distance
   collection: null,    // 컬렉션 탭에서 선택된 컬렉션 id
+  maxDistKm: null,     // 반경 필터 (km), null = 제한 없음
 };
 
 // ===== 기간 한정 이벤트 처리 =====
@@ -1492,6 +1647,13 @@ function filterData() {
     if (state.options.has("free") && !d.free) return false;
     if (state.options.has("open-today") && isClosedToday(d)) return false;
     if (state.options.has("age-2to4") && !fitsAge(d, 24, 48)) return false;
+    if (state.maxDistKm) {
+      const loc = getCachedLocation();
+      if (loc) {
+        const [dLat, dLng] = getCoord(d);
+        if (haversineKm(loc.lat, loc.lng, dLat, dLng) > state.maxDistKm) return false;
+      }
+    }
     if (state.month && !getMonths(d).includes(state.month)) return false;
     if (q) {
       const hay = (d.name + " " + d.location + " " + d.experience + " " + (d.tags || []).join(" ")).toLowerCase();
@@ -1556,6 +1718,7 @@ function applySorting(arr) {
 }
 
 function render() {
+  if (typeof updateRadiusUI === "function") updateRadiusUI();
   let filtered = filterData();
   filtered = applySorting(filtered);
   countEl.textContent = `${filtered.length} / ${DATA.length}곳`;
@@ -1799,7 +1962,17 @@ function renderCollection() {
   const col = COLLECTIONS.find(c => c.id === state.collection);
   if (!col) { state.collection = null; renderCollection(); return; }
 
-  const places = col.items.map(findByName).filter(d => d && !isExpired(d));
+  let places = col.items.map(findByName).filter(d => d && !isExpired(d));
+  // 반경 필터 적용 (위치 있을 때만)
+  if (state.maxDistKm) {
+    const loc = getCachedLocation();
+    if (loc) {
+      places = places.filter(d => {
+        const [lat, lng] = getCoord(d);
+        return haversineKm(loc.lat, loc.lng, lat, lng) <= state.maxDistKm;
+      });
+    }
+  }
   wrap.innerHTML = `
     <button class="collection-back" id="collectionBack">← 컬렉션 목록으로</button>
     <div class="collection-header">
@@ -2067,6 +2240,106 @@ document.getElementById("cityPicker").addEventListener("change", (e) => {
   runRecommend(parseFloat(lat), parseFloat(lng), name);
 });
 
+// ===== 🗺️ 지도에서 위치 찍기 모달 =====
+let pickerMap = null;
+let pickerMarker = null;
+let pickerCoord = null;
+let pickerCallback = null;
+
+function openLocationPicker(onPicked) {
+  pickerCallback = onPicked || null;
+  pickerCoord = null;
+  document.getElementById("modalConfirm").disabled = true;
+  document.getElementById("modalHint").textContent = "지도를 클릭해서 내 위치를 표시하세요.";
+  document.getElementById("modalHint").classList.remove("picked");
+  document.getElementById("locationModal").classList.add("open");
+
+  setTimeout(() => {
+    if (!pickerMap) {
+      pickerMap = L.map("pickerMap").setView([36.5, 127.8], 7);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap',
+      }).addTo(pickerMap);
+      pickerMap.on("click", (e) => {
+        pickerCoord = { lat: e.latlng.lat, lng: e.latlng.lng };
+        if (pickerMarker) pickerMarker.setLatLng(e.latlng);
+        else pickerMarker = L.marker(e.latlng).addTo(pickerMap);
+        document.getElementById("modalConfirm").disabled = false;
+        const hint = document.getElementById("modalHint");
+        hint.textContent = `✓ 위치 선택됨 (${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}) — "이 위치로 설정" 눌러주세요`;
+        hint.classList.add("picked");
+      });
+    }
+    // 캐시된 위치가 있으면 마커 표시
+    const cached = getCachedLocation();
+    if (cached && !pickerCoord) {
+      const ll = [cached.lat, cached.lng];
+      if (pickerMarker) pickerMarker.setLatLng(ll);
+      else pickerMarker = L.marker(ll).addTo(pickerMap);
+      pickerMap.setView(ll, 10);
+    }
+    pickerMap.invalidateSize();
+  }, 100);
+}
+
+function closeLocationPicker() {
+  document.getElementById("locationModal").classList.remove("open");
+  pickerCallback = null;
+}
+
+document.getElementById("modalClose").addEventListener("click", closeLocationPicker);
+document.getElementById("modalCancel").addEventListener("click", closeLocationPicker);
+document.getElementById("locationModal").addEventListener("click", (e) => {
+  if (e.target.id === "locationModal") closeLocationPicker();
+});
+document.getElementById("modalConfirm").addEventListener("click", () => {
+  if (!pickerCoord) return;
+  setCachedLocation(pickerCoord.lat, pickerCoord.lng);
+  const cb = pickerCallback;
+  closeLocationPicker();
+  if (cb) cb(pickerCoord);
+  updateRadiusUI();
+  updateSortHint();
+});
+
+document.getElementById("openPickerBtn").addEventListener("click", () => {
+  openLocationPicker(() => {
+    // 반경 필터가 켜져 있으면 즉시 적용
+    render();
+  });
+});
+document.getElementById("openPickerBtnIntro").addEventListener("click", () => {
+  openLocationPicker(({ lat, lng }) => {
+    runRecommend(lat, lng, "선택한 위치");
+  });
+});
+
+// ===== 반경 필터 =====
+const radiusSelect = document.getElementById("radiusSelect");
+const radiusHint = document.getElementById("radiusHint");
+
+function updateRadiusUI() {
+  const loc = getCachedLocation();
+  if (loc) {
+    radiusSelect.disabled = false;
+    radiusHint.textContent = "✓ 저장된 위치 기준";
+  } else {
+    radiusSelect.disabled = true;
+    radiusHint.textContent = "👈 먼저 위치를 설정하세요";
+    if (state.maxDistKm) {
+      state.maxDistKm = null;
+      radiusSelect.value = "";
+    }
+  }
+}
+updateRadiusUI();
+
+radiusSelect.addEventListener("change", (e) => {
+  state.maxDistKm = e.target.value ? parseFloat(e.target.value) : null;
+  render();
+});
+
 document.getElementById("regionFilter").addEventListener("click", e => {
   if (!e.target.classList.contains("chip")) return;
   document.querySelectorAll("#regionFilter .chip").forEach(c => c.classList.remove("active"));
@@ -2136,10 +2409,17 @@ sortSelect.addEventListener("change", e => {
         render();
       },
       err => {
-        alert("위치 권한이 거부됐어요. 추천 탭에서 도시를 선택하면 그 위치를 거리순에도 사용해요.");
         e.target.value = "default";
         state.sortMode = "default";
         updateSortHint();
+        if (confirm("위치 권한이 거부됐어요. 지도에서 직접 찍어 설정할까요?")) {
+          openLocationPicker(() => {
+            state.sortMode = "distance";
+            sortSelect.value = "distance";
+            updateSortHint();
+            render();
+          });
+        }
       },
       { timeout: 10000, maximumAge: 3600_000 }
     );
