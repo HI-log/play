@@ -256,6 +256,30 @@
     flex-shrink: 0;
   }
   .new-badge::before { content: "✨"; }
+  .period-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .period-badge.soon {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: white;
+  }
+  .period-badge.ongoing {
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .period-badge.upcoming {
+    background: #fde68a;
+    color: #92400e;
+  }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
     70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
@@ -1239,6 +1263,38 @@ let state = {
   month: null, // 캘린더에서 선택된 월
 };
 
+// ===== 기간 한정 이벤트 처리 =====
+function todayISO() {
+  const t = new Date();
+  const y = t.getFullYear();
+  const m = String(t.getMonth() + 1).padStart(2, "0");
+  const d = String(t.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+function isExpired(d) {
+  if (!d.endDate) return false;
+  return d.endDate < todayISO();
+}
+function periodBadgeHTML(d) {
+  if (!d.startDate && !d.endDate) return "";
+  const today = todayISO();
+  // 다가오는 (시작일이 미래)
+  if (d.startDate && d.startDate > today) {
+    return `<span class="period-badge upcoming" title="${d.startDate} 시작">📅 ${d.startDate} 시작</span>`;
+  }
+  // 종료 임박 (7일 이내)
+  if (d.endDate) {
+    const end = new Date(d.endDate);
+    const now = new Date(today);
+    const diffDays = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 7) {
+      return `<span class="period-badge soon" title="${d.endDate} 종료">⏰ D-${diffDays} 종료</span>`;
+    }
+    return `<span class="period-badge ongoing" title="${d.endDate}까지">~ ${d.endDate}</span>`;
+  }
+  return "";
+}
+
 const grid = document.getElementById("grid");
 const countEl = document.getElementById("count");
 let mapInstance = null;
@@ -1247,6 +1303,7 @@ let mapMarkersLayer = null;
 function filterData() {
   const q = state.query.trim().toLowerCase();
   return DATA.filter(d => {
+    if (isExpired(d)) return false;
     if (state.region !== "all" && d.region !== state.region) return false;
     if (state.type !== "all" && d.type !== state.type) return false;
     if (state.options.has("new") && !d.isNew) return false;
@@ -1271,6 +1328,7 @@ function cardHTML(d) {
           ${d.isNew ? `<span class="new-badge" title="${d.newDate || "최근 3개월 이내"}">신상</span>` : ""}
           ${d.free ? '<span class="free-badge">무료</span>' : ""}
           ${d.indoor ? '<span class="indoor-badge">실내</span>' : ""}
+          ${periodBadgeHTML(d)}
         </h3>
         <span class="region-tag">${d.regionLabel}</span>
       </div>
@@ -1495,6 +1553,7 @@ async function runRecommend(lat, lng, cityName) {
   // 후보 필터: 시즌 + 실내/실외 조건
   const m = new Date().getMonth() + 1;
   let candidates = DATA.filter(d => {
+    if (isExpired(d)) return false;
     if (!getMonths(d).includes(m)) return false;
     if (mode.indoor && !d.indoor) return false;
     return true;
@@ -1573,6 +1632,7 @@ function recoCardHTML(d, isFar) {
           ${d.isNew ? '<span class="new-badge">신상</span>' : ""}
           ${d.free ? '<span class="free-badge">무료</span>' : ""}
           ${d.indoor ? '<span class="indoor-badge">실내</span>' : ""}
+          ${periodBadgeHTML(d)}
         </h3>
         <span class="dist-badge ${isFar ? 'far' : ''}">📍 ${distLabel}</span>
       </div>
