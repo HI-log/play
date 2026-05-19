@@ -195,6 +195,15 @@
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+  .card-name > span:not([class]) {
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .category-icon {
     font-size: 22px;
@@ -208,6 +217,7 @@
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .free-badge {
     display: inline-block;
@@ -217,6 +227,8 @@
     padding: 2px 7px;
     border-radius: 4px;
     vertical-align: middle;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .indoor-badge {
     display: inline-block;
@@ -225,6 +237,8 @@
     font-size: 10px;
     padding: 2px 7px;
     border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .new-badge {
     display: inline-flex;
@@ -238,6 +252,8 @@
     font-weight: 700;
     animation: pulse 2s infinite;
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .new-badge::before { content: "✨"; }
   @keyframes pulse {
@@ -649,6 +665,9 @@
     padding: 3px 9px;
     border-radius: 4px;
     font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: flex-start;
   }
   .dist-badge.far { background: #f97316; }
 
@@ -1438,6 +1457,25 @@ function pickDiverse(arr, n, seen = new Set()) {
   return result;
 }
 
+// 야외/실내 가중치 적용 픽
+//  - outdoor 모드: 야외 후보 먼저 채우고, 부족하면 실내로 보충
+//  - indoor 모드: candidates가 이미 실내만이라 그대로 다양성 픽
+function pickWithMode(candidates, n, mode, seen = new Set(), poolSize = 30) {
+  if (mode.indoor) {
+    return pickDiverse(candidates.slice(0, poolSize), n, seen);
+  }
+  const outdoor = candidates.filter(c => !c.indoor).slice(0, poolSize);
+  const result = pickDiverse(outdoor, n, seen);
+  if (result.length < n) {
+    // 야외가 모자라면 실내로 보충
+    const seenAll = new Set([...seen, ...result.map(r => r.name)]);
+    const indoorPool = candidates.filter(c => c.indoor).slice(0, poolSize);
+    const fill = pickDiverse(indoorPool, n - result.length, seenAll);
+    return [...result, ...fill];
+  }
+  return result;
+}
+
 async function runRecommend(lat, lng, cityName) {
   const result = document.getElementById("recommendResult");
   const intro = document.getElementById("recommendIntro");
@@ -1469,8 +1507,8 @@ async function runRecommend(lat, lng, cityName) {
   });
   candidates.sort((a, b) => a.distKm - b.distKm);
 
-  // 가까운 3 (다양성)
-  const close = pickDiverse(candidates.slice(0, 30), 3);
+  // 가까운 3 (야외 우선 + 다양성)
+  const close = pickWithMode(candidates, 3, mode);
   const closeNames = new Set(close.map(c => c.name));
 
   // 먼 곳 2: 80km 이상에서 다양성 (region 다른 것 우선)
@@ -1479,7 +1517,13 @@ async function runRecommend(lat, lng, cityName) {
   // 가까운 곳과 다른 권역 우선
   const otherRegionFar = farPool.filter(c => !closeRegions.has(c.region));
   const farSource = otherRegionFar.length >= 2 ? otherRegionFar : farPool;
-  const far = pickDiverse(farSource, 2, closeNames);
+  const far = pickWithMode(farSource, 2, mode, closeNames);
+
+  // 야외 모드인데 실내가 섞여 들어왔는지 안내용 카운트
+  const closeOutdoorCnt = close.filter(c => !c.indoor).length;
+  const fallbackNote = (!mode.indoor && closeOutdoorCnt < close.length)
+    ? `<div class="recommend-error" style="background:var(--warn-soft);color:var(--warn);">근처에 야외 후보가 부족해서 실내 ${close.length - closeOutdoorCnt}곳을 함께 보여줘요.</div>`
+    : "";
 
   const wi = weatherInfo(weather.code);
 
@@ -1497,6 +1541,8 @@ async function runRecommend(lat, lng, cityName) {
         <button id="recommendReset">처음으로</button>
       </div>
     </div>
+
+    ${fallbackNote}
 
     <div class="reco-section">
       <h3 class="reco-section-title">🚗 가까운 곳 <span class="reco-section-sub">(차로 부담 적게)</span></h3>

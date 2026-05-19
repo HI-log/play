@@ -144,7 +144,8 @@ URL 구조:
    - 날씨 코드 분류는 `weatherInfo` 함수 (WMO 코드 기준)
 3. 후보 = DATA → 현재 월 시즌 통과 + (실내 모드면 indoor만)
 4. 거리 계산 (Haversine, `haversineKm`)
-5. `pickDiverse`로 가까운 3 (type 다양성) + 먼 2 (80km+, region 다양성)
+5. `pickWithMode`로 가까운 3 (야외 모드면 야외 우선 + 부족 시 실내 보충, 실내 모드면 다양성만) + 먼 2 (80km+, region 다양성)
+   - 야외 모드인데 실내가 섞이면 경고 노트가 카드 위에 표시됨
 6. `recoCardHTML`로 렌더링
 
 ## 6. 검색 차단
