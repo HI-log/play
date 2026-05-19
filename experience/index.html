@@ -280,6 +280,137 @@
     background: #fde68a;
     color: #92400e;
   }
+  .closed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--bad-soft);
+    color: var(--bad);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .card.is-closed-today {
+    opacity: 0.55;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .meta-row .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 리스트 뷰 상단 정렬바 */
+  .list-toolbar {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 24px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .list-toolbar label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .list-toolbar select {
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .dist-inline {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+
+  /* 컬렉션 탭 */
+  .collection-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .collection-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    box-shadow: var(--shadow);
+  }
+  .collection-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.10);
+    border-color: var(--accent);
+  }
+  .collection-card .col-icon {
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .collection-card h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+  .collection-card p {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .collection-card .col-count {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .collection-back {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .collection-header {
+    background: linear-gradient(135deg, var(--accent-soft), transparent);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .collection-header h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+  }
+  .collection-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
     70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
@@ -779,6 +910,8 @@
       <span class="chip" data-option="new">✨ 신상만 (최근 3개월)</span>
       <span class="chip" data-option="indoor">🏠 실내만 (비/추위 OK)</span>
       <span class="chip" data-option="free">💸 무료/저렴</span>
+      <span class="chip" data-option="open-today">📅 오늘 영업중만</span>
+      <span class="chip" data-option="age-2to4">👶 2~4세 OK</span>
     </div>
   </div>
 </div>
@@ -788,9 +921,18 @@
   <button class="view-tab" data-view="map">🗺️ 지도</button>
   <button class="view-tab" data-view="calendar">📅 시즌 캘린더</button>
   <button class="view-tab" data-view="recommend">🎯 오늘 추천</button>
+  <button class="view-tab" data-view="collection">📚 컬렉션</button>
 </div>
 
 <div class="view-panel active" id="view-list">
+  <div class="list-toolbar">
+    <label>정렬</label>
+    <select id="sortSelect">
+      <option value="default">기본</option>
+      <option value="distance">거리순 (가까운 → 먼)</option>
+    </select>
+    <span id="sortHint" style="font-size:12px;color:var(--muted);"></span>
+  </div>
   <div class="grid" id="grid"></div>
 </div>
 
@@ -835,6 +977,10 @@
     </div>
     <div class="recommend-result" id="recommendResult" style="display: none;"></div>
   </div>
+</div>
+
+<div class="view-panel" id="view-collection">
+  <div class="collection-wrap" id="collectionWrap"></div>
 </div>
 
 <footer>
@@ -1261,6 +1407,8 @@ let state = {
   options: new Set(),
   view: "list",
   month: null, // 캘린더에서 선택된 월
+  sortMode: "default", // default | distance
+  collection: null,    // 컬렉션 탭에서 선택된 컬렉션 id
 };
 
 // ===== 기간 한정 이벤트 처리 =====
@@ -1275,6 +1423,39 @@ function isExpired(d) {
   if (!d.endDate) return false;
   return d.endDate < todayISO();
 }
+// 휴무·연령
+const WEEKDAYS = ["sun","mon","tue","wed","thu","fri","sat"];
+const WEEKDAY_KO = { sun:"일", mon:"월", tue:"화", wed:"수", thu:"목", fri:"금", sat:"토" };
+function isClosedToday(d) {
+  if (!d.closedOn || !d.closedOn.length) return false;
+  return d.closedOn.includes(WEEKDAYS[new Date().getDay()]);
+}
+function fitsAge(d, minMonths, maxMonths) {
+  if (d.ageMin && d.ageMin > maxMonths) return false;
+  if (d.ageMax && d.ageMax < minMonths) return false;
+  return true;
+}
+function ageLabel(d) {
+  if (!d.ageMin && !d.ageMax) return "";
+  if (d.ageMin && d.ageMax) return `${d.ageMin}~${d.ageMax}개월`;
+  if (d.ageMin) return `${d.ageMin}개월~`;
+  return `~${d.ageMax}개월`;
+}
+
+// 위치 캐시
+function getCachedLocation() {
+  const raw = localStorage.getItem("user-location");
+  if (!raw) return null;
+  try {
+    const { lat, lng, ts } = JSON.parse(raw);
+    if (Date.now() - ts > 3600_000) return null;
+    return { lat, lng };
+  } catch { return null; }
+}
+function setCachedLocation(lat, lng) {
+  localStorage.setItem("user-location", JSON.stringify({ lat, lng, ts: Date.now() }));
+}
+
 function periodBadgeHTML(d) {
   if (!d.startDate && !d.endDate) return "";
   const today = todayISO();
@@ -1309,6 +1490,8 @@ function filterData() {
     if (state.options.has("new") && !d.isNew) return false;
     if (state.options.has("indoor") && !d.indoor) return false;
     if (state.options.has("free") && !d.free) return false;
+    if (state.options.has("open-today") && isClosedToday(d)) return false;
+    if (state.options.has("age-2to4") && !fitsAge(d, 24, 48)) return false;
     if (state.month && !getMonths(d).includes(state.month)) return false;
     if (q) {
       const hay = (d.name + " " + d.location + " " + d.experience + " " + (d.tags || []).join(" ")).toLowerCase();
@@ -1318,9 +1501,22 @@ function filterData() {
   });
 }
 
+function metaRowHTML(d) {
+  const items = [];
+  if (d.hours) items.push(`<span class="meta-item">🕐 ${d.hours}</span>`);
+  if (d.closedOn && d.closedOn.length) {
+    items.push(`<span class="meta-item">🚫 ${d.closedOn.map(w => WEEKDAY_KO[w]).join("·")}요일 휴무</span>`);
+  }
+  const age = ageLabel(d);
+  if (age) items.push(`<span class="meta-item">👶 ${age}</span>`);
+  return items.length ? `<div class="meta-row">${items.join("")}</div>` : "";
+}
+
 function cardHTML(d) {
+  const closedToday = isClosedToday(d);
+  const distInline = (typeof d.distKm === "number") ? `<span class="dist-inline">📍 ${d.distKm < 1 ? (d.distKm*1000).toFixed(0)+'m' : d.distKm.toFixed(1)+'km'}</span>` : "";
   return `
-    <div class="card${d.isNew ? " is-new" : ""}">
+    <div class="card${d.isNew ? " is-new" : ""}${closedToday ? " is-closed-today" : ""}">
       <div class="card-head">
         <h3 class="card-name">
           <span class="category-icon">${d.icon}</span>
@@ -1328,11 +1524,13 @@ function cardHTML(d) {
           ${d.isNew ? `<span class="new-badge" title="${d.newDate || "최근 3개월 이내"}">신상</span>` : ""}
           ${d.free ? '<span class="free-badge">무료</span>' : ""}
           ${d.indoor ? '<span class="indoor-badge">실내</span>' : ""}
+          ${closedToday ? '<span class="closed-badge">🚫 오늘 휴무</span>' : ""}
           ${periodBadgeHTML(d)}
         </h3>
         <span class="region-tag">${d.regionLabel}</span>
       </div>
-      <div class="location">${d.location}</div>
+      <div class="location">${d.location}${distInline}</div>
+      ${metaRowHTML(d)}
       <div class="experience">
         <span class="experience-label">체험${d.isNew && d.newDate ? ` · ${d.newDate} 오픈` : ""}</span>
         ${d.experience}
@@ -1343,8 +1541,23 @@ function cardHTML(d) {
   `;
 }
 
+function applySorting(arr) {
+  if (state.sortMode !== "distance") {
+    return arr.map(d => { const { distKm, ...rest } = d; return rest; });
+  }
+  const loc = getCachedLocation();
+  if (!loc) return arr;
+  const withDist = arr.map(d => {
+    const [lat, lng] = getCoord(d);
+    return { ...d, distKm: haversineKm(loc.lat, loc.lng, lat, lng) };
+  });
+  withDist.sort((a, b) => a.distKm - b.distKm);
+  return withDist;
+}
+
 function render() {
-  const filtered = filterData();
+  let filtered = filterData();
+  filtered = applySorting(filtered);
   countEl.textContent = `${filtered.length} / ${DATA.length}곳`;
 
   if (filtered.length === 0) {
@@ -1356,6 +1569,7 @@ function render() {
 
   if (state.view === "map") renderMap(filtered);
   if (state.view === "calendar") renderCalendar(filtered);
+  if (state.view === "collection") renderCollection();
 }
 
 // ===== 지도 =====
@@ -1426,6 +1640,178 @@ function renderCalendar(filtered) {
   if (filtered.length === 0) {
     calendarGrid.innerHTML = '<div class="empty">선택한 달에 맞는 장소가 없어요. 다른 월을 눌러보세요.</div>';
   }
+}
+
+// ===== 📚 컬렉션 =====
+const COLLECTIONS = [
+  {
+    id: "rainy",
+    icon: "🌧️",
+    name: "비 오는 날 BEST",
+    desc: "실내 위주로 종일 놀 수 있는 곳",
+    items: [
+      "주렁주렁 (하남·코엑스·수원)",
+      "쥬뗌므 키즈랜드 시흥",
+      "코엑스 아쿠아리움",
+      "아쿠아플라넷 일산",
+      "경기도어린이박물관",
+      "국립과천과학관 유아체험관",
+      "트릭아이뮤지엄 홍대",
+      "아르떼뮤지엄 (제주·강릉·여수)",
+      "롯데월드 어드벤처",
+      "키자니아 서울",
+      "광명동굴",
+      "별마당 도서관 (코엑스)",
+    ],
+  },
+  {
+    id: "childrens-day",
+    icon: "🎈",
+    name: "어린이날 시즌 코스",
+    desc: "5월에 특히 좋은 곳",
+    items: [
+      "에버랜드",
+      "롯데월드 어드벤처",
+      "서울대공원",
+      "서울어린이대공원",
+      "예술의전당 어린이 가족 페스티벌",
+      "에버랜드 튤립축제 / 장미축제",
+      "한국민속촌",
+      "키자니아 서울",
+    ],
+  },
+  {
+    id: "grandma",
+    icon: "👵",
+    name: "할머니랑 가기 좋은 곳",
+    desc: "평지·접근성 좋고 너무 활동적이지 않은 곳",
+    items: [
+      "별마당 도서관 (코엑스)",
+      "북촌한옥마을",
+      "경복궁",
+      "전주 한옥마을",
+      "서울숲",
+      "올림픽공원",
+      "남산 N서울타워",
+      "리움미술관",
+      "국립현대미술관 어린이미술관",
+      "여수 해상케이블카",
+      "통영 케이블카",
+    ],
+  },
+  {
+    id: "busan-daytrip",
+    icon: "🏖️",
+    name: "당일치기 부산",
+    desc: "부산권에서 하루 코스로 묶기 좋은 곳",
+    items: [
+      "국립부산과학관",
+      "부산현대미술관 (MOCA Busan)",
+      "부산 송도해상케이블카 (에어크루즈)",
+      "부산 송도 거북섬 / 태종대 다누비열차",
+      "부산 베이킹 하루",
+    ],
+  },
+  {
+    id: "first-trip",
+    icon: "🌱",
+    name: "첫 가족여행 (안전 입문)",
+    desc: "처음이라면 부담 없이 시작할 곳",
+    items: [
+      "대관령 양떼목장",
+      "안성팜랜드",
+      "에버랜드",
+      "서울대공원",
+      "한국민속촌",
+      "제주양떼목장",
+      "주렁주렁 (하남·코엑스·수원)",
+      "키자니아 서울",
+    ],
+  },
+  {
+    id: "free",
+    icon: "🎟️",
+    name: "무료로 종일 놀기",
+    desc: "입장료 부담 없이 갈 수 있는 곳",
+    items: [
+      "서울 유아숲체험원 (75개소)",
+      "용인산림교육센터 유아숲체험원",
+      "성남·안양·창원 유아숲체험원",
+      "서울어린이대공원",
+      "서울숲",
+      "반포한강공원",
+      "뚝섬한강공원",
+      "여의도 한강공원",
+      "올림픽공원",
+      "일산 호수공원",
+      "국립중앙박물관 어린이박물관",
+      "국립민속박물관 어린이박물관",
+      "국립농업박물관 어린이박물관",
+      "별마당 도서관 (코엑스)",
+      "송파 책박물관",
+      "국립인천해양박물관",
+      "아침미소목장",
+      "여주 목장",
+      "봉은사 (서울)",
+      "왜목마을 갯벌체험",
+      "경복궁",
+      "북촌한옥마을",
+    ],
+  },
+];
+
+function findByName(name) {
+  // 정확 매칭 우선, 못 찾으면 일부 매칭 (괄호 등 변형 흡수)
+  let hit = DATA.find(d => d.name === name);
+  if (!hit) hit = DATA.find(d => d.name.startsWith(name) || name.startsWith(d.name));
+  return hit;
+}
+
+function renderCollection() {
+  const wrap = document.getElementById("collectionWrap");
+  if (!state.collection) {
+    wrap.innerHTML = `
+      <h2 style="margin:0 0 8px;font-size:22px;">📚 컬렉션</h2>
+      <p style="margin:0 0 20px;color:var(--muted);font-size:14px;">미리 짜둔 테마별 묶음. 클릭하면 그 안의 장소만 모아 보여줘요.</p>
+      <div class="collection-grid">
+        ${COLLECTIONS.map(c => {
+          const cnt = c.items.map(findByName).filter(d => d && !isExpired(d)).length;
+          return `
+            <div class="collection-card" data-id="${c.id}">
+              <div class="col-icon">${c.icon}</div>
+              <h3>${c.name}</h3>
+              <p>${c.desc}</p>
+              <div class="col-count">${cnt}곳</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+    wrap.querySelectorAll(".collection-card").forEach(el => {
+      el.addEventListener("click", () => {
+        state.collection = el.dataset.id;
+        renderCollection();
+      });
+    });
+    return;
+  }
+
+  const col = COLLECTIONS.find(c => c.id === state.collection);
+  if (!col) { state.collection = null; renderCollection(); return; }
+
+  const places = col.items.map(findByName).filter(d => d && !isExpired(d));
+  wrap.innerHTML = `
+    <button class="collection-back" id="collectionBack">← 컬렉션 목록으로</button>
+    <div class="collection-header">
+      <h2>${col.icon} ${col.name}</h2>
+      <p>${col.desc} · ${places.length}곳</p>
+    </div>
+    <div class="grid">${places.map(cardHTML).join("")}</div>
+  `;
+  document.getElementById("collectionBack").addEventListener("click", () => {
+    state.collection = null;
+    renderCollection();
+  });
 }
 
 // ===== 탭 전환 =====
@@ -1623,8 +2009,9 @@ async function runRecommend(lat, lng, cityName) {
 
 function recoCardHTML(d, isFar) {
   const distLabel = d.distKm < 1 ? `${(d.distKm * 1000).toFixed(0)}m` : `${d.distKm.toFixed(1)}km`;
+  const closedToday = isClosedToday(d);
   return `
-    <div class="card${d.isNew ? " is-new" : ""}">
+    <div class="card${d.isNew ? " is-new" : ""}${closedToday ? " is-closed-today" : ""}">
       <div class="card-head">
         <h3 class="card-name">
           <span class="category-icon">${d.icon}</span>
@@ -1632,11 +2019,13 @@ function recoCardHTML(d, isFar) {
           ${d.isNew ? '<span class="new-badge">신상</span>' : ""}
           ${d.free ? '<span class="free-badge">무료</span>' : ""}
           ${d.indoor ? '<span class="indoor-badge">실내</span>' : ""}
+          ${closedToday ? '<span class="closed-badge">🚫 오늘 휴무</span>' : ""}
           ${periodBadgeHTML(d)}
         </h3>
         <span class="dist-badge ${isFar ? 'far' : ''}">📍 ${distLabel}</span>
       </div>
       <div class="location">${d.location}</div>
+      ${metaRowHTML(d)}
       <div class="experience">
         <span class="experience-label">체험</span>
         ${d.experience}
@@ -1657,6 +2046,7 @@ document.getElementById("recommendStart").addEventListener("click", () => {
   btn.textContent = "위치 확인 중…";
   navigator.geolocation.getCurrentPosition(
     (pos) => {
+      setCachedLocation(pos.coords.latitude, pos.coords.longitude);
       runRecommend(pos.coords.latitude, pos.coords.longitude, "현재 위치");
       btn.disabled = false;
       btn.textContent = "📍 추천 받기";
@@ -1673,6 +2063,7 @@ document.getElementById("recommendStart").addEventListener("click", () => {
 document.getElementById("cityPicker").addEventListener("change", (e) => {
   if (!e.target.value) return;
   const [lat, lng, name] = e.target.value.split(",");
+  setCachedLocation(parseFloat(lat), parseFloat(lng));
   runRecommend(parseFloat(lat), parseFloat(lng), name);
 });
 
@@ -1708,6 +2099,55 @@ document.getElementById("optionFilter").addEventListener("click", e => {
 document.getElementById("search").addEventListener("input", e => {
   state.query = e.target.value;
   render();
+});
+
+// 정렬 select (거리순 위치 처리)
+const sortSelect = document.getElementById("sortSelect");
+const sortHint = document.getElementById("sortHint");
+function updateSortHint() {
+  if (state.sortMode === "distance") {
+    const loc = getCachedLocation();
+    sortHint.textContent = loc ? "✓ 저장된 위치 기준" : "위치 정보를 받아오는 중…";
+  } else {
+    sortHint.textContent = "";
+  }
+}
+sortSelect.addEventListener("change", e => {
+  const val = e.target.value;
+  if (val === "distance") {
+    const cached = getCachedLocation();
+    if (cached) {
+      state.sortMode = "distance";
+      updateSortHint();
+      render();
+      return;
+    }
+    if (!navigator.geolocation) {
+      alert("이 브라우저는 위치 서비스를 지원하지 않아요. 추천 탭에서 도시를 먼저 골라주세요.");
+      e.target.value = "default";
+      return;
+    }
+    sortHint.textContent = "위치 권한 요청 중…";
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setCachedLocation(pos.coords.latitude, pos.coords.longitude);
+        state.sortMode = "distance";
+        updateSortHint();
+        render();
+      },
+      err => {
+        alert("위치 권한이 거부됐어요. 추천 탭에서 도시를 선택하면 그 위치를 거리순에도 사용해요.");
+        e.target.value = "default";
+        state.sortMode = "default";
+        updateSortHint();
+      },
+      { timeout: 10000, maximumAge: 3600_000 }
+    );
+  } else {
+    state.sortMode = "default";
+    updateSortHint();
+    render();
+  }
 });
 
 const themeBtn = document.getElementById("themeToggle");
